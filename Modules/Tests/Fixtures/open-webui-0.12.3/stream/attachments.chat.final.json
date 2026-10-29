@@ -1,0 +1,189 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Atlantis Document Query",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Atlantis Document Query",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0029",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0030": {
+          "id": "00000000-0000-4000-8000-0000000e0030",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0029"
+          ],
+          "role": "user",
+          "content": "[theseus-test] According to the attached document, what is the capital of Atlantis? Also name the colour of the attached image in one word.",
+          "timestamp": 1792790416,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "files": [
+            {
+              "type": "file",
+              "id": "00000000-0000-4000-8000-0000000e0031",
+              "url": "00000000-0000-4000-8000-0000000e0031",
+              "name": "[theseus-test] atlas.txt",
+              "size": 65,
+              "content_type": "text/plain",
+              "collection_name": "",
+              "status": "uploaded"
+            },
+            {
+              "type": "file",
+              "id": "00000000-0000-4000-8000-0000000e0032",
+              "url": "00000000-0000-4000-8000-0000000e0032",
+              "name": "[theseus-test] swatch.png",
+              "size": 73,
+              "content_type": "image/png",
+              "collection_name": "",
+              "status": "uploaded"
+            }
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0029": {
+          "id": "00000000-0000-4000-8000-0000000e0029",
+          "parentId": "00000000-0000-4000-8000-0000000e0030",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "According to the attached document, the capital of Atlantis is **Poseidonia** [1].\n\nThe attached image appears to be a solid **orange** swatch. It's very small, so I'm not fully certain of the exact shade.",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792790416,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0033"
+          },
+          "statusHistory": [
+            {
+              "action": "queries_generated",
+              "queries": [],
+              "done": false
+            },
+            {
+              "action": "sources_retrieved",
+              "count": 1,
+              "done": true
+            }
+          ],
+          "sources": [
+            {
+              "source": {
+                "type": "file",
+                "id": "00000000-0000-4000-8000-0000000e0031",
+                "url": "00000000-0000-4000-8000-0000000e0031",
+                "name": "[theseus-test] atlas.txt",
+                "size": 65,
+                "content_type": "text/plain",
+                "collection_name": "",
+                "status": "uploaded"
+              },
+              "document": [
+                "Theseus fixture document. The capital of Atlantis is Poseidonia. Filename: [theseus-test] atlas.txt [theseus test] atlas txt [theseus test] atlas txt Source: [theseus-test] atlas.txt"
+              ],
+              "metadata": [
+                {
+                  "content_type": "text/plain",
+                  "size": 65,
+                  "file_hash": "de8a0fc48851808920973443c5e948253f1a200b02f6251ec66da07619b6d594",
+                  "start_index": 0,
+                  "source": "[theseus-test] atlas.txt",
+                  "embedding_config": "{'engine': '', 'model': 'sentence-transformers/all-MiniLM-L6-v2'}",
+                  "file_id": "00000000-0000-4000-8000-0000000e0031",
+                  "hash": "de8a0fc48851808920973443c5e948253f1a200b02f6251ec66da07619b6d594",
+                  "name": "[theseus-test] atlas.txt",
+                  "created_by": "00000000-0000-4000-8000-000000000001",
+                  "_chunk_hash": "bc1834820b86ddb62fc87990e6a9fb49307bd3dddf171d66a057eb09e3c3a0a5",
+                  "score": 0.3206963364539423
+                }
+              ],
+              "distances": [
+                0.3206963364539423
+              ]
+            }
+          ],
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000013",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "According to the attached document, the capital of Atlantis is **Poseidonia** [1].\n\nThe attached image appears to be a solid **orange** swatch. It's very small, so I'm not fully certain of the exact shade."
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 14146,
+            "completion_tokens": 280,
+            "total_tokens": 28852,
+            "prompt_tokens_details": {
+              "cached_tokens": 20298,
+              "cached_creation_tokens": 7990,
+              "cache_write_tokens": 7990
+            },
+            "input_tokens": 28292,
+            "output_tokens": 560
+          }
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] According to the attached document, what is the capital of Atlantis? Also name the colour of the attached image in one word.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [
+      {
+        "type": "file",
+        "id": "00000000-0000-4000-8000-0000000e0031",
+        "url": "00000000-0000-4000-8000-0000000e0031",
+        "name": "[theseus-test] atlas.txt",
+        "size": 65,
+        "content_type": "text/plain",
+        "collection_name": "",
+        "status": "uploaded"
+      }
+    ],
+    "tags": [],
+    "timestamp": 1792790416131,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792790422,
+  "created_at": 1792790416,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0029",
+  "context_usage": {
+    "tokens": 14426,
+    "estimated_tokens": 14426,
+    "threshold": 80000,
+    "percent": 18,
+    "source": "estimated"
+  }
+}

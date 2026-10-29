@@ -1,0 +1,366 @@
+/* The Theseus website (https://unru.sh/theseus/): plain static pages, no build step.
+   Brand: docs/design/brand.md ("The Museum After Hours"). Gallery plaster and ink, one verdigris accent,
+   New York for display, Departure Mono for plaques, gilt frames around the paintings, the pixel mouse
+   at the thresholds. The paintings are shown as they are: never filtered, recoloured or cropped into UI.
+   Media in assets/ comes from marketing/site-assets/build.py. */
+
+@font-face {
+  font-family: "Departure Mono";
+  src: url("assets/fonts/DepartureMono-Regular.otf") format("opentype");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light dark;
+  --background: #F3F3F0;     /* Plaster */
+  --surface: #FFFFFF;        /* Gesso */
+  --recessed: #E7E8E4;       /* Stone */
+  --text: #16181D;           /* Ivory black */
+  --secondary: #4A505B;      /* Graphite */
+  --tertiary: #5F6571;
+  --accent: #2C6656;         /* Verdigris */
+  --on-accent: #FFFFFF;
+  --accent-soft: #DDEBE6;
+  --rule: #DCDDD8;
+  --gilt: #C9A24A;
+  --frame-ink: #15130F;
+  /* The after-hours rooms are dark in both appearances. */
+  --night: #111318;          /* Nocturne */
+  --night-surface: #1A1D24;  /* Slate */
+  --night-text: #ECEBE6;
+  --night-secondary: #B4B7BF;
+  --night-accent: #7CC7B0;
+  --night-rule: #2A2E37;
+
+  --serif: "New York", ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "Departure Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --wide: 1180px;
+  --shadow: 0 1px 2px rgba(17, 19, 24, .06), 0 24px 48px -24px rgba(17, 19, 24, .35);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111318;
+    --surface: #1A1D24;
+    --recessed: #0B0D10;
+    --text: #ECEBE6;
+    --secondary: #B4B7BF;
+    --tertiary: #8E929C;
+    --accent: #7CC7B0;
+    --on-accent: #0B1F19;
+    --accent-soft: #17302A;
+    --rule: #2A2E37;
+    --gilt: #D6AE55;
+    --night: #0B0D10;
+    --night-surface: #15181E;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 24px 48px -24px rgba(0, 0, 0, .8);
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font: 17px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, video, svg { display: block; max-width: 100%; }
+a { color: var(--accent); text-underline-offset: .18em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.12; letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+p { text-wrap: pretty; }
+.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* Plaques: Departure Mono, small, uppercase. Only for labels, never for body text. */
+.plaque {
+  font: 12px/1.5 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+.plaque a { color: inherit; }
+
+.wrap { width: min(var(--wide), 100% - 2.5rem); margin-inline: auto; }
+
+/* ---------- Header ---------- */
+.top {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+}
+.top .wrap { display: flex; align-items: center; gap: 1.5rem; height: 60px; }
+.brand { display: flex; align-items: center; gap: .6rem; color: var(--text); text-decoration: none; font: 500 1.3rem/1 var(--serif); }
+.brand .scene { margin-top: -2px; }
+.top nav { display: flex; gap: 1.4rem; margin-left: auto; font-size: .95rem; align-items: center; }
+.top nav a { color: var(--secondary); text-decoration: none; }
+.top nav a:hover, .top nav a[aria-current] { color: var(--text); }
+@media (max-width: 760px) { .top nav a:not(.keep) { display: none; } }
+
+/* ---------- Buttons ---------- */
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.button {
+  display: inline-flex; align-items: center; gap: .55rem;
+  padding: .8rem 1.35rem; border-radius: 999px;
+  font: 500 1rem/1.1 var(--sans); text-decoration: none;
+  background: var(--accent); color: var(--on-accent);
+  border: 1px solid var(--accent);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -10px var(--accent); }
+.button.quiet { background: transparent; color: var(--text); border-color: var(--rule); }
+.button.quiet:hover { border-color: var(--secondary); box-shadow: none; }
+.button .stack { display: grid; gap: .25rem; text-align: left; }
+.button small { display: block; font: 10px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
+.top .button { padding: .5rem 1rem; font-size: .9rem; color: var(--on-accent); }
+.top .button:hover { color: var(--on-accent); }
+
+/* ---------- The animated mouse ----------
+   Each scene is one horizontal strip of frames (assets/mouse/scenes.css sets the strip, --n frames,
+   the --still frame and the sprite size). Whole-number scaling only (--px), stepped at 6 fps, no
+   tweening; with Reduce Motion on it holds its representative frame. */
+.scene {
+  --px: 3;
+  position: relative;
+  isolation: isolate;
+  display: block;
+  flex: none;
+  width: calc(var(--sw) * var(--px) * 1px);
+  height: calc(var(--sh) * var(--px) * 1px);
+  background-repeat: no-repeat;
+  background-size: calc(var(--n) * 100%) 100%;
+  image-rendering: pixelated;
+  animation: scene-play calc(var(--n) * 1s / 6) steps(var(--n), jump-none) infinite;
+}
+.scene.compact { --px: 2; }
+@keyframes scene-play { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .scene { animation: none; background-position: calc(var(--still) * 100% / (var(--n) - 1)) 0; }
+}
+/* On dark ground the umber outline all but disappears: a soft backdrop lifts the drawing (brand §3). */
+.scene::before {
+  content: ""; position: absolute; z-index: -1; inset: calc(var(--px) * -8px);
+  background: radial-gradient(closest-side, rgba(74, 80, 91, .27), rgba(74, 80, 91, 0));
+  display: none;
+}
+.night .scene::before, .film .scene::before { display: block; }
+@media (prefers-color-scheme: dark) { .scene::before { display: block; } }
+@media (prefers-color-scheme: dark) and (prefers-reduced-transparency: reduce) {
+  .scene::before { background: #17191F; border-radius: 50%; }
+}
+
+/* ---------- Frames: the gilt rule and the ink mat ---------- */
+.frame {
+  position: relative;
+  margin: 0;
+  padding: clamp(6px, 1.1vw, 12px);
+  background: var(--frame-ink);
+  border: 2px solid var(--gilt);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .18), 0 30px 60px -28px rgba(17, 19, 24, .55);
+}
+.frame img { width: 100%; height: auto; }
+
+/* ---------- Devices ---------- */
+.phone {
+  position: relative;
+  width: var(--w, 270px);
+  flex: none;
+  margin: 0;
+  padding: calc(var(--w, 270px) * .032);
+  border-radius: calc(var(--w, 270px) * .165);
+  background: linear-gradient(160deg, #3A3D45, #0B0D10 40%, #1A1D24);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), var(--shadow);
+}
+.phone img { width: 100%; height: auto; aspect-ratio: 640 / 1392; border-radius: calc(var(--w, 270px) * .135); background: #000; }
+.ipad {
+  margin: 0;
+  padding: clamp(8px, 1.4vw, 16px);
+  border-radius: clamp(18px, 3vw, 34px);
+  background: linear-gradient(160deg, #3A3D45, #0B0D10 40%, #1A1D24);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), var(--shadow);
+}
+.ipad img { width: 100%; height: auto; border-radius: clamp(10px, 1.8vw, 20px); }
+
+/* ---------- Hero ---------- */
+.hero { padding: clamp(3rem, 8vw, 6rem) 0 0; text-align: center; overflow: hidden; }
+.hero .eyebrow { margin: 0 0 1.4rem; }
+.hero h1 { font-size: clamp(2.7rem, 7.2vw, 5.6rem); max-width: 13ch; margin-inline: auto; }
+.hero h1 em { color: var(--accent); }
+.hero .lede { font-size: clamp(1.08rem, 1.8vw, 1.3rem); color: var(--secondary); max-width: 40rem; margin: 1.5rem auto 2rem; }
+.hero .actions { justify-content: center; }
+.hero .terms { margin: 1.3rem 0 0; }
+
+.wall { position: relative; width: min(1040px, 100% - 2.5rem); margin: clamp(3.5rem, 7vw, 5rem) auto 0; }
+.wall > .frame { width: 100%; }
+.wall .peek { position: absolute; left: 13%; top: -52px; width: 68px; height: 56px; z-index: 1; }
+.wall .phones { display: flex; justify-content: center; align-items: flex-end; gap: clamp(.8rem, 3vw, 2.4rem); margin-top: -34%; position: relative; }
+.wall .phones .phone:nth-child(odd) { --w: clamp(104px, 21vw, 232px); margin-bottom: clamp(1rem, 4vw, 3rem); }
+.wall .phones .phone:nth-child(2) { --w: clamp(132px, 27vw, 292px); }
+.wall .credit { margin: 1.6rem 0 0; text-align: right; }
+@media (max-width: 560px) { .wall .credit { text-align: center; } }
+
+/* The skirting board, with the mouse running along it. Movement is stepped, like the app's mouse. */
+.floor { position: relative; height: 72px; margin-top: 2rem; border-bottom: 1px solid var(--rule); overflow: hidden; }
+.runner {
+  position: absolute; bottom: 0; left: 0;
+  width: 81px; height: 33px;               /* 27 × 11 sprite pixels at 3 px */
+  background: url("assets/mouse/run-sheet.svg") 0 0 / 162px 33px no-repeat;
+  image-rendering: pixelated;
+  animation: run-frames .32s steps(1) infinite, run-across 16s steps(120) infinite;
+}
+@keyframes run-frames { 0% { background-position: 0 0; } 50% { background-position: -81px 0; } }
+@keyframes run-across { from { transform: translateX(-90px); } to { transform: translateX(100vw); } }
+@media (prefers-reduced-motion: reduce) {
+  .runner { animation: none; left: 50%; transform: translateX(-50%); }
+}
+
+/* ---------- Sections ---------- */
+section { padding: clamp(4.5rem, 10vw, 8rem) 0; }
+.section-head { max-width: 44rem; margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+.section-head.center { margin-inline: auto; text-align: center; }
+.section-head h2 { font-size: clamp(2rem, 4.6vw, 3.4rem); margin: .8rem 0 1rem; }
+.section-head p { color: var(--secondary); font-size: 1.12rem; margin: 0; }
+
+/* The checklist: every feature, as on the film's end card. */
+.checklist { display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem; max-width: 64rem; margin: 0 auto; padding: 0; list-style: none; }
+.checklist li {
+  font: 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase;
+  padding: .62rem .9rem .58rem; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--text); background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+.checklist li::before { content: "✓"; color: var(--accent); margin-right: .55rem; }
+
+/* The film. */
+.film { background: var(--night); color: var(--night-text); }
+.film .plaque, .film .section-head p { color: var(--night-secondary); }
+.screen { margin: 0 auto; max-width: 1040px; border-radius: 18px; overflow: hidden; border: 1px solid var(--night-rule); box-shadow: 0 40px 80px -40px rgba(0, 0, 0, .9); background: #000; }
+.screen video { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.film .below { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; max-width: 1040px; margin: 1.2rem auto 0; }
+.film a { color: var(--night-accent); }
+
+/* Rooms: one feature area each, a plaque, a title, the text and the screens. */
+.room { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+.room + .room { margin-top: clamp(6rem, 12vw, 10rem); }
+.room.flip > .copy { order: 2; }
+.room .copy h3 { font-size: clamp(1.9rem, 3.8vw, 2.8rem); margin: .9rem 0 1.1rem; }
+.room .copy > p { color: var(--secondary); font-size: 1.08rem; margin: 0 0 1.2rem; }
+.room .copy ul { list-style: none; padding: 0; margin: 1.6rem 0 0; border-top: 1px solid var(--rule); }
+.room .copy li { padding: .7rem 0; border-bottom: 1px solid var(--rule); display: flex; gap: .8rem; }
+.room .copy li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: .62em; background: var(--accent); }
+.room .shots { display: flex; justify-content: center; align-items: flex-end; gap: clamp(.8rem, 2.5vw, 1.8rem); }
+.room .shots .phone { --w: clamp(140px, 22vw, 270px); }
+.room .shots .phone.low { margin-bottom: clamp(-3.5rem, -5vw, -1.5rem); }
+.room .note { display: flex; align-items: center; gap: 1rem; margin-top: 1.6rem; color: var(--secondary); font-size: .98rem; }
+.room .note > .scene, .room .note > img { flex: none; }
+@media (max-width: 860px) {
+  .room { grid-template-columns: 1fr; }
+  .room.flip > .copy { order: 0; }
+}
+
+/* A pair of smaller rooms side by side. */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.25rem, 3vw, 2rem); margin-top: clamp(6rem, 12vw, 10rem); }
+.card {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 28px;
+  padding: clamp(1.6rem, 4vw, 2.8rem); overflow: hidden; display: flex; flex-direction: column;
+}
+.card h3 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: .8rem 0 .8rem; }
+.card > p { color: var(--secondary); margin: 0 0 2rem; }
+.card .phone { --w: clamp(170px, 24vw, 250px); margin: auto auto -16%; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+
+/* A small working mouse beside some room plaques. Decorative: nothing on the page talks about it. */
+.room-mark { display: flex; align-items: flex-end; gap: 1rem; }
+.room-mark .plaque { margin: 0; }
+.room-mark .scene { margin-bottom: 2px; }
+
+/* iPad. */
+.ipad-room { text-align: center; padding-top: 0; }
+.ipad-room .ipad { max-width: 620px; margin: 0 auto; }
+
+/* After hours: Incognito and privacy, in the dark. */
+.night { background: var(--night); color: var(--night-text); }
+.night .plaque { color: var(--night-secondary); }
+.night .room .copy > p, .night .section-head p { color: var(--night-secondary); }
+.night .room .copy ul, .night .room .copy li { border-color: var(--night-rule); }
+.night .room .copy li::before { background: var(--night-accent); }
+.night a { color: var(--night-accent); }
+.promises { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--night-rule); border: 1px solid var(--night-rule); border-radius: 22px; overflow: hidden; margin-top: clamp(4rem, 8vw, 6rem); }
+.promises div { background: var(--night); padding: 1.6rem 1.5rem 1.7rem; }
+.promises h4 { font: 500 1.25rem/1.25 var(--serif); margin: .6rem 0 .45rem; }
+.promises p { margin: 0; color: var(--night-secondary); font-size: .97rem; }
+@media (max-width: 860px) { .promises { grid-template-columns: 1fr; } }
+
+/* Beyond the app: widgets, sharing, Spotlight. */
+.beyond { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: clamp(1rem, 2.5vw, 1.6rem); }
+.beyond .card { padding-bottom: 0; }
+.beyond .card > p { margin-bottom: 1.6rem; }
+.widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: auto calc(-1 * clamp(1.6rem, 4vw, 2.8rem)) 0; padding: 1.6rem; background: linear-gradient(160deg, #C9CBC4, #8C9AA0 60%, #6B7A86); }
+.widgets img { border-radius: 22px; width: 100%; height: auto; box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .55); }
+.widgets img.medium { grid-column: 1 / -1; }
+.beyond .card .phone { --w: clamp(170px, 19vw, 220px); margin-bottom: -22%; }
+@media (max-width: 960px) { .beyond { grid-template-columns: 1fr 1fr; } .beyond .card:first-child { grid-column: 1 / -1; } .beyond .card:first-child .widgets { grid-template-columns: 2fr 1fr 1fr; } .beyond .card:first-child .widgets img.medium { grid-column: auto; } }
+@media (max-width: 620px) { .beyond { grid-template-columns: 1fr; } .beyond .card:first-child .widgets { grid-template-columns: 1fr 1fr; } .beyond .card:first-child .widgets img.medium { grid-column: 1 / -1; } }
+
+/* Questions. */
+.faq { max-width: 50rem; margin: 0 auto; border-top: 1px solid var(--rule); }
+.faq details { border-bottom: 1px solid var(--rule); }
+.faq summary { list-style: none; cursor: pointer; padding: 1.25rem 2.5rem 1.25rem 0; position: relative; font: 500 1.25rem/1.3 var(--serif); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: .3rem; top: 1.15rem; font: 1.4rem/1 var(--mono); color: var(--accent); transition: transform .2s ease; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { margin: 0 0 1.4rem; color: var(--secondary); max-width: 44rem; }
+
+/* The last call. */
+.closing { text-align: center; }
+.closing .scene { margin: 0 auto .6rem; }
+.closing .plaque { margin: 0 auto 1.6rem; }
+.closing h2 { font-size: clamp(2.2rem, 5vw, 3.8rem); margin-bottom: 1rem; }
+.closing p { color: var(--secondary); margin: 0 auto 2rem; max-width: 34rem; }
+.closing .actions { justify-content: center; }
+
+/* ---------- Footer ---------- */
+.foot { border-top: 1px solid var(--rule); padding: 3rem 0 3.5rem; color: var(--secondary); font-size: .92rem; }
+.foot .wrap { display: grid; grid-template-columns: 1.3fr .8fr 1.6fr; gap: 2.5rem; }
+.foot h4 { margin: 0 0 .8rem; }
+.foot p { margin: 0 0 .8rem; }
+.foot ul { list-style: none; padding: 0; margin: 0; display: grid; gap: .45rem; }
+.foot a { color: var(--secondary); }
+.foot a:hover { color: var(--text); }
+.foot .brand { margin-bottom: 1rem; }
+.foot .lineage { display: flex; gap: 1rem; align-items: flex-end; margin-top: 1.4rem; }
+.foot .lineage .frame { width: 84px; padding: 5px; flex: none; }
+.foot .trademarks { margin-top: 1.2rem; font-size: 10px; text-transform: none; letter-spacing: .02em; }
+.foot .credits li { font: 11px/1.5 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--tertiary); }
+@media (max-width: 860px) { .foot .wrap { grid-template-columns: 1fr; } }
+
+/* ---------- Prose pages: privacy, support, 404 ---------- */
+.prose { width: min(44rem, 100% - 2.5rem); margin: 0 auto; padding: clamp(3rem, 7vw, 5rem) 0 5rem; }
+.prose h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); margin: 0 0 1rem; }
+.prose h2 { font-size: 1.5rem; margin: 2.6rem 0 .7rem; }
+.prose .lede { color: var(--secondary); font-size: 1.1rem; }
+.prose li { margin: .3rem 0; }
+.prose .mouse { margin-bottom: 1.6rem; }
+
+/* The legal notice. */
+.legal address { font-style: normal; margin: 1.6rem 0; padding: 1.1rem 1.3rem; border-left: 2px solid var(--gilt); background: var(--surface); }
+.legal dl { display: grid; grid-template-columns: minmax(9rem, 14rem) 1fr; gap: .2rem 1.5rem; margin: 0 0 1rem; padding-top: .3rem; }
+.legal dt { font: 11px/2.1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--tertiary); }
+.legal dd { margin: 0 0 .7rem; }
+.legal h3 { font-size: 1.2rem; margin: 2rem 0 .5rem; }
+.legal hr { border: 0; border-top: 1px solid var(--rule); margin: 4rem 0 1rem; }
+.legal section { padding: 0; }
+.legal section h2 { margin-top: 2.6rem; }
+@media (max-width: 560px) { .legal dl { grid-template-columns: 1fr; } .legal dd { margin-bottom: 1rem; } }
+
+/* Lost in the labyrinth. */
+.lost { text-align: center; }
+.lost .frame { width: min(300px, 70%); margin: 4rem auto 1rem; }
+.lost .peek { position: absolute; left: 50%; top: -52px; width: 68px; height: 56px; transform: translateX(-50%); }
+.lost .actions { justify-content: center; margin-top: 2rem; }
+.lost h1 { margin-top: 2.2rem; }

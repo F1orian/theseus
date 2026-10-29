@@ -1,0 +1,115 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Weekend Trip Planning",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Weekend Trip Planning",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0025",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0026": {
+          "id": "00000000-0000-4000-8000-0000000e0026",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0025"
+          ],
+          "role": "user",
+          "content": "[theseus-test] I want to plan a weekend trip. Before answering, you MUST call the ask_user tool with exactly two questions (destination type and budget), each with 2 options. Do not answer before calling it.",
+          "timestamp": 1792780367,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0025": {
+          "id": "00000000-0000-4000-8000-0000000e0025",
+          "parentId": "00000000-0000-4000-8000-0000000e0026",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "",
+          "done": false,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780367,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0028",
+            "session_id": "LVL0J_RYT6lkbOH4AAAT",
+            "tool_ids": [],
+            "skill_ids": [],
+            "terminal_id": null,
+            "tool_servers": [],
+            "filter_ids": [],
+            "features": {
+              "voice": false,
+              "image_generation": false,
+              "code_interpreter": false,
+              "web_search": false,
+              "memory": false
+            },
+            "variables": {},
+            "files": [],
+            "params": {
+              "stream_delta_chunk_size": null,
+              "reasoning_tags": null,
+              "compact_token_threshold": null,
+              "function_calling": "native",
+              "tool_approval_mode": "full",
+              "model_controls": {}
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "toolu_000000000000000000000001",
+              "call_id": "toolu_000000000000000000000001",
+              "name": "ask_user",
+              "arguments": "{\"questions\":[{\"id\":\"destination_type\",\"header\":\"Destination\",\"question\":\"What type of destination are you looking for for your weekend trip?\",\"options\":[{\"label\":\"Nature getaway\",\"description\":\"Mountains, beach, lake, or forest with hiking, relaxing, and outdoor time\"},{\"label\":\"City break\",\"description\":\"Urban trip with restaurants, museums, shopping, and nightlife\"}],\"allow_other\":true},{\"id\":\"budget\",\"header\":\"Budget\",\"question\":\"What is your approximate budget for the weekend trip?\",\"options\":[{\"label\":\"Moderate (~$300-600)\",\"description\":\"Comfortable stay with a mid-range hotel, some dining out, and paid activities\"},{\"label\":\"Budget-friendly (under $300)\",\"description\":\"Affordable lodging like hostels, Airbnb, or camping, with mostly cheap eats and free activities\"}],\"allow_other\":true}],\"allow_other\":true,\"timeout_ms\":120000}",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] I want to plan a weekend trip. Before answering, you MUST call the ask_user tool with exactly two questions (destination type and budget), each with 2 options. Do not answer before calling it.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780367357,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780367,
+  "created_at": 1792780367,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0025",
+  "context_usage": {
+    "tokens": 327,
+    "estimated_tokens": 327,
+    "threshold": 80000,
+    "percent": 0,
+    "source": "estimated"
+  }
+}

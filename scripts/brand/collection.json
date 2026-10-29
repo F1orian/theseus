@@ -1,0 +1,385 @@
+[
+  {
+    "id": "cole-view-of-florence",
+    "title": "View of Florence",
+    "artist": "Thomas Cole",
+    "date": "1837",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1961.39",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1961.39",
+    "file": "cole-view-of-florence.jpg",
+    "width": 1600,
+    "height": 985,
+    "slots": [
+      "welcome"
+    ]
+  },
+  {
+    "id": "heade-point-judith",
+    "title": "Point Judith, Rhode Island",
+    "artist": "Martin Johnson Heade",
+    "date": "1867–68",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1970.161",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1970.161",
+    "file": "heade-point-judith.jpg",
+    "width": 1600,
+    "height": 890,
+    "slots": [
+      "incognito",
+      "welcome-dark"
+    ]
+  },
+  {
+    "id": "zeshin-mouse",
+    "title": "Mouse (Album of Paintings by the Venerable Zeshin)",
+    "artist": "Shibata Zeshin",
+    "date": "1847",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1990.130.l",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1990.130.l",
+    "file": "zeshin-mouse.jpg",
+    "width": 1352,
+    "height": 1600,
+    "slots": [
+      "mascot-origin",
+      "about"
+    ]
+  },
+  {
+    "id": "florilegium-labyrinth",
+    "title": "Labyrinth with Floral and Cornucopia Border",
+    "artist": "Unknown (florilegium)",
+    "date": "1608",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1963.594.16.a",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1963.594.16.a",
+    "file": "florilegium-labyrinth.jpg",
+    "width": 1035,
+    "height": 1600,
+    "slots": [
+      "onboarding",
+      "project-cover"
+    ]
+  },
+  {
+    "id": "barye-theseus-minotaur",
+    "title": "Theseus Slaying the Minotaur (second version)",
+    "artist": "Antoine-Louis Barye",
+    "date": "c. 1857",
+    "museum": "The Metropolitan Museum of Art",
+    "objectNumber": "192857",
+    "licence": "CC0",
+    "url": "https://www.metmuseum.org/art/collection/search/192857",
+    "file": "barye-theseus-minotaur.jpg",
+    "width": 425,
+    "height": 624,
+    "slots": [
+      "about"
+    ]
+  },
+  {
+    "id": "piranesi-drawbridge",
+    "title": "The Prisons: An Immense Interior with a Drawbridge",
+    "artist": "Giovanni Battista Piranesi",
+    "date": "1745–50",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1941.26.5",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1941.26.5",
+    "file": "piranesi-drawbridge.jpg",
+    "width": 1224,
+    "height": 1600,
+    "slots": [
+      "error",
+      "offline"
+    ]
+  },
+  {
+    "id": "durer-jerome-study",
+    "title": "St. Jerome in his Study",
+    "artist": "Albrecht Dürer",
+    "date": "1514",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1972.29",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1972.29",
+    "file": "durer-jerome-study.jpg",
+    "width": 1224,
+    "height": 1600,
+    "slots": [
+      "memory",
+      "today"
+    ]
+  },
+  {
+    "id": "yi-books-scholars",
+    "title": "Books and Scholars' Accoutrements",
+    "artist": "Yi Taek-gyun",
+    "date": "late 1800s",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "2011.37",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/2011.37",
+    "file": "yi-books-scholars.jpg",
+    "width": 1600,
+    "height": 901,
+    "slots": [
+      "library-empty"
+    ]
+  },
+  {
+    "id": "corot-la-cervara",
+    "title": "La Cervara, the Roman Campagna",
+    "artist": "Jean-Baptiste-Camille Corot",
+    "date": "c. 1830–31",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1963.91",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1963.91",
+    "file": "corot-la-cervara.jpg",
+    "width": 1600,
+    "height": 1147,
+    "slots": [
+      "project-cover",
+      "today"
+    ]
+  },
+  {
+    "id": "turner-burning-houses",
+    "title": "The Burning of the Houses of Lords and Commons, 16 October 1834",
+    "artist": "Joseph Mallord William Turner",
+    "date": "1835",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1942.647",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1942.647",
+    "file": "turner-burning-houses.jpg",
+    "width": 1600,
+    "height": 1188,
+    "slots": [
+      "project-cover",
+      "today"
+    ]
+  },
+  {
+    "id": "gifford-haverstraw-bay",
+    "title": "Haverstraw Bay",
+    "artist": "Sanford Robinson Gifford",
+    "date": "1868",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "2011.43",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/2011.43",
+    "file": "gifford-haverstraw-bay.jpg",
+    "width": 1600,
+    "height": 753,
+    "slots": [
+      "project-cover",
+      "voice",
+      "today"
+    ]
+  },
+  {
+    "id": "lorrain-rest-flight",
+    "title": "Rest on the Flight into Egypt",
+    "artist": "Claude Lorrain",
+    "date": "early 1640s",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1962.151",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1962.151",
+    "file": "lorrain-rest-flight.jpg",
+    "width": 1195,
+    "height": 1600,
+    "slots": [
+      "project-cover",
+      "today"
+    ]
+  },
+  {
+    "id": "roman-sarcophagus-theseus-ariadne",
+    "title": "Marble sarcophagus with garlands and the myth of Theseus and Ariadne",
+    "artist": "Roman",
+    "date": "c. 130–150 CE",
+    "museum": "The Metropolitan Museum of Art",
+    "objectNumber": "245585",
+    "licence": "CC0",
+    "url": "https://www.metmuseum.org/art/collection/search/245585",
+    "file": "roman-sarcophagus-theseus-ariadne.jpg",
+    "width": 598,
+    "height": 307,
+    "slots": [
+      "about"
+    ]
+  },
+  {
+    "id": "hammershoi-strandgade",
+    "title": "Strandgade, Sunshine",
+    "artist": "Vilhelm Hammershøi",
+    "date": "c. 1906",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "2023.38",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/2023.38",
+    "file": "hammershoi-strandgade.jpg",
+    "width": 1600,
+    "height": 1416,
+    "slots": [
+      "project-cover",
+      "today",
+      "icon"
+    ]
+  },
+  {
+    "id": "renoir-fruits-of-the-midi",
+    "title": "Fruits of the Midi",
+    "artist": "Pierre-Auguste Renoir",
+    "date": "1881",
+    "museum": "Art Institute of Chicago",
+    "objectNumber": "1933.1176",
+    "licence": "CC0",
+    "url": "https://www.artic.edu/artworks/16629",
+    "file": "renoir-fruits-of-the-midi.jpg",
+    "width": 1600,
+    "height": 1234,
+    "slots": [
+      "icon",
+      "today"
+    ]
+  },
+  {
+    "id": "monet-apples-and-grapes",
+    "title": "Apples and Grapes",
+    "artist": "Claude Monet",
+    "date": "1880",
+    "museum": "Art Institute of Chicago",
+    "objectNumber": "1933.1152",
+    "licence": "CC0",
+    "url": "https://www.artic.edu/artworks/16549",
+    "file": "monet-apples-and-grapes.jpg",
+    "width": 1600,
+    "height": 1279,
+    "slots": [
+      "icon",
+      "today"
+    ]
+  },
+  {
+    "id": "cezanne-basket-of-apples",
+    "title": "The Basket of Apples",
+    "artist": "Paul Cézanne",
+    "date": "c. 1893",
+    "museum": "Art Institute of Chicago",
+    "objectNumber": "1926.252",
+    "licence": "CC0",
+    "url": "https://www.artic.edu/artworks/111436",
+    "file": "cezanne-basket-of-apples.jpg",
+    "width": 1600,
+    "height": 1277,
+    "slots": [
+      "icon",
+      "today"
+    ]
+  },
+  {
+    "id": "vandijck-cheeses",
+    "title": "Still Life with Cheeses",
+    "artist": "Floris Claesz. van Dijck",
+    "date": "c. 1615",
+    "museum": "Rijksmuseum",
+    "objectNumber": "SK-A-4821",
+    "licence": "Public domain",
+    "url": "https://www.rijksmuseum.nl/en/collection/SK-A-4821",
+    "file": "vandijck-cheeses.jpg",
+    "width": 1600,
+    "height": 1181,
+    "slots": [
+      "icon"
+    ]
+  },
+  {
+    "id": "peeters-cheeses-almonds-pretzels",
+    "title": "Still Life with Cheeses, Almonds and Pretzels",
+    "artist": "Clara Peeters",
+    "date": "c. 1615",
+    "museum": "Mauritshuis",
+    "objectNumber": "1203",
+    "licence": "Public domain",
+    "url": "https://www.mauritshuis.nl/en/our-collection/artworks/1203-still-life-with-cheeses-almonds-and-pretzels",
+    "file": "peeters-cheeses-almonds-pretzels.jpg",
+    "width": 1600,
+    "height": 1114,
+    "slots": [
+      "icon"
+    ]
+  },
+  {
+    "id": "decamps-herring-bread-cheese",
+    "title": "Still Life with Herring, Bread, and Cheese",
+    "artist": "Alexandre-Gabriel Decamps",
+    "date": "1858",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1980.254.2",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1980.254.2",
+    "file": "decamps-herring-bread-cheese.jpg",
+    "width": 951,
+    "height": 1600,
+    "slots": [
+      "icon"
+    ]
+  },
+  {
+    "id": "coorte-gooseberries",
+    "title": "Gooseberries on a Table",
+    "artist": "Adriaen Coorte",
+    "date": "1701",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1987.32",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1987.32",
+    "file": "coorte-gooseberries.jpg",
+    "width": 1227,
+    "height": 1600,
+    "slots": [
+      "icon"
+    ]
+  },
+  {
+    "id": "vanderhamen-sweets",
+    "title": "Still Life with Sweets",
+    "artist": "Juan van der Hamen y León",
+    "date": "1622",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1980.6",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1980.6",
+    "file": "vanderhamen-sweets.jpg",
+    "width": 1600,
+    "height": 950,
+    "slots": [
+      "icon"
+    ]
+  },
+  {
+    "id": "chardin-kitchen-utensils",
+    "title": "Kitchen Utensils with Leeks, Fish, and Eggs",
+    "artist": "Jean-Siméon Chardin",
+    "date": "c. 1734",
+    "museum": "Cleveland Museum of Art",
+    "objectNumber": "1980.37",
+    "licence": "CC0",
+    "url": "https://www.clevelandart.org/art/1980.37",
+    "file": "chardin-kitchen-utensils.jpg",
+    "width": 1600,
+    "height": 1260,
+    "slots": [
+      "icon"
+    ]
+  }
+]

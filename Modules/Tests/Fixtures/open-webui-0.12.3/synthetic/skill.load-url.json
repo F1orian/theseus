@@ -1,0 +1,18 @@
+[
+  {
+    "id": "pdf-tools",
+    "name": "pdf-tools",
+    "description": "Fill and split PDF files.",
+    "meta": {},
+    "files": [
+      {
+        "path": "SKILL.md",
+        "content": "---\nname: pdf-tools\ndescription: Fill and split PDF files.\n---\n\n# PDF tools\n"
+      },
+      {
+        "path": "scripts/fill.py",
+        "content": "print('fill')\n"
+      }
+    ]
+  }
+]

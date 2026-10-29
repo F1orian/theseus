@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "path": "/home/user/theseus-test/planets.csv",
+      "relative_path": "planets.csv",
+      "name": "planets.csv",
+      "type": "file",
+      "name_match": true,
+      "content_matches": []
+    }
+  ],
+  "next_offset": null
+}

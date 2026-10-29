@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- The Theseus website, served from https://unru.sh/theseus/. Plain HTML: copy site/ there as is.
+     The support email and repository URL also live in Modules/Sources/DesignSystem/PublicLinks.swift;
+     scripts/release/preflight checks they match. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support · Theseus</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../assets/mouse/scenes.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../"><span class="scene idle-head" style="--px: 2" aria-hidden="true"></span>Theseus</a>
+    <nav aria-label="Main">
+      <a href="../#features">Features</a>
+      <a href="../support/" aria-current="page">Support</a>
+      <a href="../privacy/">Privacy</a>
+      <a class="keep" href="https://github.com/F1orian/theseus">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main class="prose">
+<img class="mouse pixel" src="../assets/mouse/read.svg" alt="" width="60" height="54">
+<h1>Support &amp; feedback</h1>
+<p><strong>Email:</strong> <a href="mailto:theseus@unru.sh">theseus@unru.sh</a><br>
+<strong>Report a bug or ask for a feature:</strong> <a href="https://github.com/F1orian/theseus/issues">GitHub issues</a></p>
+
+<h2>Before you write</h2>
+<p>Theseus is a client. Your account, chats, files, models and their answers live on the <strong>Open WebUI
+server</strong> you connect to, which is run by its admin, not by the developer of Theseus. Please ask your
+server's admin about:</p>
+<ul>
+<li>creating, approving or <strong>deleting your account</strong> (Open WebUI lets only admins delete accounts),</li>
+<li>which models you can use, their limits and what they may answer,</li>
+<li>content you reported in the app (<em>Report</em> sends it to the server's admins),</li>
+<li>how your data is kept on the server.</li>
+</ul>
+<p>In the app, <strong>Settings › Data &amp; privacy</strong> shows who runs your server and how to reach them.</p>
+
+<h2>Common questions</h2>
+<p><strong>I can't sign up in the app.</strong> Theseus signs in to existing accounts only. Create your account in
+the server's web interface, or ask its admin, then sign in in Theseus.</p>
+<p><strong>How do I report a harmful response?</strong> Tap the thumbs-down under it and turn on <em>Report as
+harmful or offensive</em>. In chats without rating, tap the flag. The report goes to the server's admins.</p>
+<p><strong>How do I remove my data from this device?</strong> Settings › Data &amp; privacy › <em>Remove from this
+device</em> signs you out and deletes the account's local copy. <em>Clear cache</em> keeps you signed in and deletes
+only the local copy of your chats.</p>
+<p><strong>Which servers work?</strong> Open WebUI 0.12 or newer, reachable over HTTPS (or on your local network).</p>
+</main>
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <a class="brand" href="../"><span class="scene idle-head" style="--px: 2" aria-hidden="true"></span>Theseus</a>
+      <p>Theseus is independent and not affiliated with the Open WebUI project.</p>
+    </div>
+    <div>
+      <ul>
+        <li><a href="../support/">Support</a></li>
+        <li><a href="../privacy/">Privacy policy</a></li>
+        <li><a href="../impressum/">Legal notice (Impressum)</a></li>
+        <li><a href="https://github.com/F1orian/theseus">Source code</a></li>
+      </ul>
+    </div>
+    <div><p>Contact: <a href="mailto:theseus@unru.sh">theseus@unru.sh</a></p></div>
+  </div>
+</footer>
+</body>
+</html>

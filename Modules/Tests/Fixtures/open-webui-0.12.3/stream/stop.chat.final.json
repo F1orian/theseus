@@ -1,0 +1,96 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Mouse Maze Story",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Mouse Maze Story",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0078",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0079": {
+          "id": "00000000-0000-4000-8000-0000000e0079",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0078"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Write a 600-word story about a mouse in a maze.",
+          "timestamp": 1792780426,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0078": {
+          "id": "00000000-0000-4000-8000-0000000e0078",
+          "parentId": "00000000-0000-4000-8000-0000000e0079",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "**The Long Way Round**\n\nPip had counted the walls on her first morning in the maze.",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780426,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0080"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000056",
+              "status": "incomplete",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "**The Long Way Round**\n\nPip had counted the walls on her first morning in the maze."
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] Write a 600-word story about a mouse in a maze.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780426646,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780428,
+  "created_at": 1792780426,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0078",
+  "context_usage": {
+    "tokens": 99,
+    "estimated_tokens": 99,
+    "threshold": 80000,
+    "percent": 0,
+    "source": "estimated"
+  }
+}

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "weather",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "Weather",
+    "meta": {"description": "Current conditions and forecasts.", "manifest": {}},
+    "access_grants": [],
+    "updated_at": 1792760000,
+    "created_at": 1792760000,
+    "has_user_valves": true
+  },
+  {
+    "id": "server:crm",
+    "user_id": "server:crm",
+    "name": "Customer records",
+    "meta": {"description": "Look up accounts and orders."},
+    "updated_at": 1792760000,
+    "created_at": 1792760000
+  },
+  {
+    "id": "server:mcp:linear",
+    "user_id": "server:mcp:linear",
+    "name": "Linear",
+    "meta": {"description": "Issues, projects and cycles."},
+    "updated_at": 1792760000,
+    "created_at": 1792760000,
+    "authenticated": false
+  },
+  {
+    "id": "server:mcp:docs",
+    "user_id": "server:mcp:docs",
+    "name": "Company docs",
+    "meta": {"description": ""},
+    "updated_at": 1792760000,
+    "created_at": 1792760000,
+    "authenticated": true
+  },
+  {
+    "id": "server:mcp:search",
+    "user_id": "server:mcp:search",
+    "name": "Atlas search",
+    "meta": {"description": "Search the internal knowledge graph."},
+    "updated_at": 1792760000,
+    "created_at": 1792760000
+  }
+]

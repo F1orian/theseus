@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "id": "reasoner",
+      "name": "Reasoner",
+      "owned_by": "openai",
+      "info": {
+        "meta": { "description": "Thinks before it answers", "capabilities": { "vision": false } },
+        "params": {
+          "model_controls": {
+            "thinking": {
+              "label": "Thinking",
+              "options": { "off": { "label": "Off" }, "on": { "label": "On" } }
+            },
+            "effort": {
+              "label": "Effort",
+              "description": "How long the model reasons",
+              "default": "low",
+              "options": {
+                "low": { "label": "Low" },
+                "medium": { "label": "Medium" },
+                "high": { "label": "High" },
+                "max": { "label": "Max" }
+              }
+            },
+            "verbosity": {
+              "label": "Verbosity",
+              "display": "slider",
+              "options": { "terse": { "label": "Terse" }, "normal": { "label": "Normal" }, "chatty": { "label": "Chatty" } }
+            }
+          }
+        }
+      }
+    },
+    { "id": "local-llama", "name": "Llama", "owned_by": "ollama" }
+  ]
+}

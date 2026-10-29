@@ -1,0 +1,1286 @@
+#!/usr/bin/env python3
+"""A tiny fake Open WebUI for walking through sign-in flows the test Server can't produce.
+
+The real test Server has no SSO providers, no MFA and no pending Accounts. This stub serves just
+enough of the API (shapes from Modules/Tests/Fixtures, which are scrubbed recordings) to drive the
+Theseus onboarding in a simulator:
+
+  email                     password   what happens
+  user@example.com          theseus    signed in (role admin)
+  pending@example.com       theseus    signed in with role "pending" (approval screen)
+  verify@example.com        theseus    MFA verify (TOTP 123456, or recovery code abcd-efgh)
+  enroll@example.com        theseus    MFA enrolment (any key; confirm with 123456)
+  recover@example.com       theseus    MFA recovery (operator token "operator-reset-token-0123456789")
+  incognito@example.com     theseus    signed in (role user) with Incognito chats enforced (INCOG-02); a send
+                                       streams like stream@example.com
+  notice@example.com        theseus    signed in (role user) with a Server banner above the composer (HOME-04)
+  empty@example.com         theseus    signed in (role user) with no Chats (the Chats empty state, BRAND-04)
+  stream@example.com        theseus    signed in (role user); a send streams a long markdown Response over
+                                       SSE, a chunk every 80 ms for about 35 s (no socket), to test scrolling
+                                       while a Response streams (#183)
+  long@example.com          theseus    signed in (role user) with one long imported Chat (58 Messages, #197:
+                                       scrolling a lazy transcript); a send streams like stream@example.com
+  writer@example.com        theseus    signed in (role user) who may create and import Skills (#187)
+  reader@example.com        theseus    signed in (role user) without the Skills permission (#187)
+  review@example.com        theseus    signed in (role admin) on a Server with a sandbox (one terminal) and
+                                       Skills: the App Review paywall lists everything Pro adds (ADR 0173).
+                                       Every other Account sees no terminals and the Pyodide engine, i.e. a
+                                       Server without code execution.
+
+  "New here? Create an account" signs up any email; the new Account is pending approval.
+
+  SSO pill "Stub SSO"  -> /oauth/stub/login renders a fake identity-provider page; "Continue"
+                          redirects to /auth and sets the `token` cookie, like Open WebUI does.
+  SSO pill "Stub MFA"  -> same, but the callback goes to /auth?mfa=1; the stub page asks for a
+                          code (123456) before it sets the cookie.
+
+  Connectors (CONN-*)  -> /api/v1/tools/ lists a workspace tool, an OpenAPI tool server and three MCP
+                          servers ("Company docs" connected, "Linear" and "Notion" waiting). Connecting
+                          walks a fake MCP OAuth page (Allow / Deny) and redirects to "/" like Open
+                          WebUI; disconnecting deletes the fake OAuth session.
+
+  Connections (#186)   -> admin tool-server connections (GET/POST /api/v1/configs/tool_servers, /verify,
+                          /oauth/clients/register), personal connectors in the user settings
+                          (ui.toolServers), the default user permissions, groups, and a fake OpenAPI
+                          tool server at http://localhost:8765/stub-tools (spec openapi.json; Bearer key
+                          "stub-tool-key", or no key). A minimal Socket.IO endpoint and
+                          /api/chat/completions answer chats: when the request carries tool_servers,
+                          the stub asks the app to run the first tool (`execute:tool`) and replies with
+                          what came back. POST /api/v1/stub/reset restores the starting state.
+  OAuth 2.1 (#193)     -> MCP servers whose URL mentions "github" refuse dynamic client registration
+                          (400 "Failed to register OAuth client: Dynamic client registration failed:
+                          404 page not found", like GitHub). With static credentials (client_secret)
+                          registration works for any URL. GET /api/v1/auths/admin/config answers
+                          WEBUI_URL (the stub's own address), the base of the callback URLs.
+
+  email                     role    connectors
+  fresh@example.com         admin   no static connectors: the admin empty state, then add/edit/remove
+  newbie@example.com        user    no static connectors: the non-admin empty state
+  member@example.com        user    personal connectors follow the default permissions (off at first)
+  builder@example.com       user    personal connectors allowed (as if a group granted them)
+
+  Skills (#187)        -> /api/v1/skills/* in memory: create, update, toggle, delete, access grants,
+                          load from a URL (admins), .skill/.zip/.md/.json import preview + import.
+                          user@ (admin) owns "Brand voice" (everyone), "Legal review" (group Legal)
+                          and "Release notes" (private); writer@ owns "Tone check" and is in Legal.
+                          /stub-skills/pdf-tools/SKILL.md serves a SKILL.md to add from a link.
+
+Usage: scripts/stub-server [--port 8765] [--host 127.0.0.1] [--no-sso]
+Then connect the app to http://localhost:8765 (the simulator shares the Mac's localhost).
+Nothing here touches a real Server.
+"""
+
+import argparse
+import base64
+import hashlib
+import html
+import json
+import os
+import threading
+import socket
+import socketserver
+import time
+import sys
+import urllib.parse
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+FIXTURES = ROOT / "Modules/Tests/Fixtures/open-webui-0.12.3"
+PASSWORD = "theseus"
+TOTP = "123456"
+RECOVERY = "abcd-efgh"
+RESET_TOKEN = "operator-reset-token-0123456789"
+
+
+def fixture(name):
+    return json.loads((FIXTURES / name).read_text())
+
+
+def LONG_CHAT():
+    """The long imported Chat (#197), from the synthetic fixture."""
+    return fixture("synthetic/chat.long.json")
+
+
+def b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode().rstrip("=")
+
+
+def mint_token(email: str, role: str) -> str:
+    claims = {"id": f"stub-{email}", "email": email, "role": role, "exp": int(time.time()) + 3600}
+    header = b64url(b'{"alg":"HS256","typ":"JWT"}')
+    return f"{header}.{b64url(json.dumps(claims).encode())}.c3R1Yg"
+
+
+def claims_of(token: str):
+    try:
+        payload = token.split(".")[1]
+        payload += "=" * (-len(payload) % 4)
+        return json.loads(base64.urlsafe_b64decode(payload))
+    except Exception:  # noqa: BLE001 - any malformed token is simply unauthorised
+        return None
+
+
+def session_user(email: str, role: str):
+    user = fixture("signin.json")
+    user.update({
+        "id": f"stub-{email}",
+        "email": email,
+        "name": email.split("@")[0].capitalize(),
+        "role": role,
+        "token": mint_token(email, role),
+        "expires_at": int(time.time()) + 3600,
+        "profile_image_url": "/user.png",
+    })
+    if STATE and role in ("user", "admin"):
+        user["permissions"] = permissions_for(email)
+    if email.split("@")[0] == "incognito":
+        # chat.temporary + chat.temporary_enforced: every Chat is Incognito (INCOG-02).
+        chat = dict(user.get("permissions", {}).get("chat", {}), temporary=True, temporary_enforced=True)
+        user["permissions"] = dict(user.get("permissions", {}), chat=chat)
+    if email.split("@")[0] == "writer":
+        # workspace.skills + skills_import: may create and import Skills (#187).
+        workspace = dict(user.get("permissions", {}).get("workspace", {}), skills=True, skills_import=True)
+        user["permissions"] = dict(user.get("permissions", {}), workspace=workspace)
+    return user
+
+
+# challenge token -> (email, step)
+CHALLENGES = {}
+
+# Connectors: the MCP servers that sign in with OAuth, and which ones are connected.
+MCP_SERVERS = {
+    "docs": ("Company docs", "Search handbooks, policies and onboarding guides."),
+    "linear": ("Linear", "Issues, projects and cycles from your workspace."),
+    "notion": ("Notion", "Search and update pages in your Notion workspace."),
+}
+CONNECTED = {"docs"}
+
+# #186: Server state that admins and users change. `reset_state()` restores it.
+STATE = {}
+NO_STATIC_TOOLS = {"fresh", "newbie", "member", "builder"}
+TOOL_KEY = "stub-tool-key"
+
+
+def reset_state():
+    STATE.clear()
+    STATE["connections"] = []
+    STATE["permissions"] = fixture("users.default-permissions.json")
+    STATE["settings"] = {}
+    CONNECTED.clear()
+    CONNECTED.add("docs")
+
+
+def local(email):
+    return (email or "").split("@")[0]
+
+
+def role_of(email):
+    return {"pending": "pending", "incognito": "user", "notice": "user", "newbie": "user",
+            "member": "user", "builder": "user", "writer": "user", "reader": "user", "stream": "user", "long": "user"}.get(local(email), "admin")
+
+
+def permissions_for(email):
+    perms = json.loads(json.dumps(STATE["permissions"]))
+    if local(email) == "builder":
+        perms["features"]["direct_tool_servers"] = True
+    return perms
+
+
+def configured_tools():
+    entries = []
+    for connection in STATE["connections"]:
+        if not (connection.get("config") or {}).get("enable"):
+            continue
+        info = connection.get("info") or {}
+        server_id = info.get("id") or str(STATE["connections"].index(connection))
+        entry = {"id": f"server:{server_id}", "user_id": f"server:{server_id}", "name": info.get("name") or server_id,
+                 "meta": {"description": info.get("description") or ""}}
+        if connection.get("type") == "mcp":
+            entry["id"] = entry["user_id"] = f"server:mcp:{server_id}"
+            if connection.get("auth_type") in ("oauth_2.1", "oauth_2.1_static"):
+                entry["authenticated"] = server_id in CONNECTED
+        entries.append(entry)
+    return entries
+
+
+def oauth_servers():
+    servers = {key: value[0] for key, value in MCP_SERVERS.items()}
+    for connection in STATE["connections"]:
+        info = connection.get("info") or {}
+        if connection.get("type") == "mcp" and connection.get("auth_type") in ("oauth_2.1", "oauth_2.1_static") and info.get("id"):
+            servers[info["id"]] = info.get("name") or info["id"]
+    return servers
+
+
+TOOL_SPEC = {
+    "openapi": "3.1.0",
+    "info": {"title": "Stub notes", "version": "1.0.0", "description": "A fake OpenAPI tool server"},
+    "paths": {
+        "/notes": {
+            "get": {"operationId": "list_notes", "summary": "List the user's notes",
+                    "parameters": [{"name": "tag", "in": "query", "required": False,
+                                    "schema": {"type": "string", "enum": ["work", "home"]}}]},
+            "post": {"operationId": "add_note", "summary": "Add a note",
+                     "requestBody": {"content": {"application/json": {"schema": {
+                         "type": "object", "required": ["text"], "properties": {"text": {"type": "string"}}}}}}},
+        },
+    },
+}
+NOTES = [{"id": "1", "text": "Buy milk", "tag": "home"}, {"id": "2", "text": "Ship #186", "tag": "work"}]
+
+
+def tools(email=""):
+    if local(email) in NO_STATIC_TOOLS:
+        return configured_tools()
+    entries = [
+        {"id": "weather", "user_id": "stub", "name": "Weather",
+         "meta": {"description": "Current conditions and forecasts."}, "has_user_valves": False},
+        {"id": "server:crm", "user_id": "server:crm", "name": "Customer records",
+         "meta": {"description": "Look up accounts and orders."}},
+    ]
+    for server_id, (name, description) in MCP_SERVERS.items():
+        entries.append({"id": f"server:mcp:{server_id}", "user_id": f"server:mcp:{server_id}", "name": name,
+                        "meta": {"description": description}, "authenticated": server_id in CONNECTED})
+    return entries + configured_tools()
+
+
+def long_response():
+    """About 40 s of markdown: sections with paragraphs and a list, so the transcript keeps growing."""
+    sections = []
+    for n in range(1, 13):
+        sections.append(
+            f"## Corridor {n}\n\n"
+            f"The mouse enters corridor {n} and keeps its right whisker on the wall. Every junction is "
+            "noted in its little map, so it never walks the same loop twice. The walls are cold stone, the "
+            "floor is worn smooth by centuries of visitors who came looking for the centre and found only "
+            "more corridors.\n\n"
+            "- **Sense:** read the walls around the current cell.\n"
+            "- **Decide:** prefer unvisited corridors, then the least-visited one.\n"
+            "- **Move:** advance one cell and mark the corridor.\n\n"
+            f"After corridor {n} the mouse has mapped about {min(100, n * 8)} % of the labyrinth, and the "
+            "lantern light reaches a little further each time.\n\n"
+        )
+    return "".join(sections)
+
+
+def sse_chunks(text: str, size: int = 3):
+    words = text.split(" ")
+    for start in range(0, len(words), size):
+        piece = " ".join(words[start:start + size]) + (" " if start + size < len(words) else "")
+        yield piece
+
+
+def challenge(email: str, step: str):
+    token = b64url(f"{email}:{step}:{time.time()}".encode()) + "-stub-challenge"
+    CHALLENGES[token] = (email, step)
+    return {"next_step": step, "challenge_token": token, "expires_in": 300}
+
+
+IDP_PAGE = """<!doctype html><html><head><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Stub identity provider</title>
+<style>body{{font:17px -apple-system,sans-serif;margin:0;padding:48px 24px;background:#eef2f7;color:#1c2733}}
+.card{{background:#fff;border-radius:16px;padding:24px;max-width:420px;margin:auto;box-shadow:0 4px 24px #0001}}
+h1{{font-size:22px}} input,button{{font:inherit;width:100%;box-sizing:border-box;padding:14px;border-radius:10px;margin-top:12px}}
+input{{border:1px solid #c8d1dc}} button{{background:#2456d6;color:#fff;border:0}} p{{color:#5b6875}}</style></head>
+<body><div class=card><h1>{title}</h1><p>{text}</p>
+<form method=post action="{action}">{fields}<button type=submit id=continue>Continue</button></form></div></body></html>"""
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "TheseusStub/1"
+    sso = True
+    confirm_password = False
+
+    # MARK: plumbing
+
+    def handle(self):
+        # Theseus tries https first for scheme-less addresses. Drop TLS handshakes right away so
+        # it falls back to http instead of waiting for a timeout.
+        try:
+            if self.request.recv(1, socket.MSG_PEEK) == b"\x16":
+                return
+        except OSError:
+            return
+        super().handle()
+
+    def log_message(self, fmt, *args):
+        print(f"{getattr(self, 'command', '?')} {getattr(self, 'path', '?')} -> {fmt % args}")
+
+    def body(self):
+        length = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(length) if length else b""
+        if self.headers.get("Content-Type", "").startswith("application/json"):
+            return json.loads(raw or b"{}")
+        return {k: v[0] for k, v in urllib.parse.parse_qs(raw.decode()).items()}
+
+    def send_json(self, payload, status=200):
+        data = json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def send_html(self, text, status=200, headers=()):
+        data = text.encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        for key, value in headers:
+            self.send_header(key, value)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def redirect(self, location, cookies=()):
+        self.send_response(302)
+        self.send_header("Location", location)
+        for cookie in cookies:
+            self.send_header("Set-Cookie", cookie)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def bearer_claims(self):
+        auth = self.headers.get("Authorization", "")
+        return claims_of(auth[7:]) if auth.startswith("Bearer ") else None
+
+    def unauthorized(self):
+        self.send_json({"detail": "Not authenticated"}, 401)
+
+    def cookie_claims(self):
+        for part in (self.headers.get("Cookie") or "").split(";"):
+            name, _, value = part.strip().partition("=")
+            if name == "token":
+                return claims_of(value)
+        return None
+
+    # MARK: routes
+
+    def do_GET(self):  # noqa: N802 - http.server naming
+        path, _, query = self.path.partition("?")
+        claims = self.bearer_claims()
+        if skills_route(self, "GET", path, claims):
+            return
+        if path == "/api/config":
+            config = fixture("config.json" if claims and claims.get("role") != "pending" else "config.public.json")
+            config["name"] = "Theseus Stub"
+            config["features"].update({
+                "enable_ldap": False,
+                "enable_signup": True,
+                "enable_signup_password_confirmation": self.confirm_password,
+            })
+            config["oauth"]["providers"] = {"stub": "Stub SSO", "stub-mfa": "Stub MFA"} if self.sso else {}
+            if claims and claims.get("role") == "pending":
+                config["ui"] = {
+                    "pending_user_overlay_title": "Almost there",
+                    "pending_user_overlay_content": "The stub admin approves accounts on weekdays. Check back soon.",
+                }
+            return self.send_json(config)
+        if path == "/api/version":
+            return self.send_json({"version": "0.12.3", "deployment_id": "stub"})
+        if path == "/api/v1/auths/":
+            if not claims:
+                return self.unauthorized()
+            return self.send_json(session_user(claims["email"], claims["role"]))
+        if path == "/api/models":
+            if not claims or claims.get("role") == "pending":
+                return self.unauthorized()
+            return self.send_json(fixture("models.json"))
+        if path == "/api/v1/chats/":
+            if not claims or claims.get("role") == "pending":
+                return self.unauthorized()
+            if claims["email"].split("@")[0] == "empty":
+                return self.send_json([])
+            if claims["email"].split("@")[0] == "long":
+                chat = LONG_CHAT()
+                return self.send_json([{"id": chat["id"], "title": chat["title"], "updated_at": chat["updated_at"],
+                                        "created_at": chat["created_at"], "last_read_at": chat["updated_at"],
+                                        "snippet": None, "active": False, "archived": False}])
+            return self.send_json(fixture("chats.page-1.json"))
+        if path == "/api/v1/configs/banners":
+            if not claims:
+                return self.unauthorized()
+            if claims["email"].split("@")[0] != "notice":
+                return self.send_json([])
+            return self.send_json([{
+                "id": "stub-maintenance", "type": "warning", "title": "Maintenance tonight",
+                "content": "The stub Server restarts at 22:00 for an update. Chats are kept.",
+                "dismissible": True, "timestamp": int(time.time()),
+            }])
+        if path.startswith("/oauth/") and path.endswith("/login"):
+            provider = path.split("/")[2]
+            fields = "<input name=email value='sso@example.com' aria-label=Email>"
+            return self.send_html(IDP_PAGE.format(
+                title=html.escape(f"Sign in to {provider}"),
+                text="This is the stub identity provider. Nothing leaves your Mac.",
+                action=f"/oauth/{provider}/login/callback",
+                fields=fields,
+            ))
+        if path == "/auth":
+            params = urllib.parse.parse_qs(query)
+            if "mfa" in params:
+                return self.send_html(IDP_PAGE.format(
+                    title="Two-step verification",
+                    text="Enter the code from your authenticator app (123456).",
+                    action="/auth/mfa",
+                    fields="<input name=code inputmode=numeric autocomplete=one-time-code aria-label=Code>",
+                ))
+            return self.send_html("<!doctype html><p style='font:17px sans-serif;padding:48px'>Signing you in…</p>")
+        if path == "/health":
+            return self.send_json({"status": True})
+        if path == "/api/v1/terminals/":
+            # ADR 0173: only review@ gets a sandbox; the others model a Server without one.
+            if not claims:
+                return self.unauthorized()
+            if local(claims.get("email")) != "review":
+                return self.send_json([])
+            return self.send_json(fixture("stream/sandbox.terminals.json"))
+        if path == "/api/v1/tools/":
+            if not claims:
+                return self.unauthorized()
+            return self.send_json(tools(claims.get("email")))
+        if path.startswith("/oauth/clients/mcp:") and path.endswith("/authorize"):
+            # Open WebUI's authorize endpoint needs a signed-in user (header or `token` cookie).
+            if not (claims or self.cookie_claims()):
+                return self.unauthorized()
+            server_id = path.split("mcp:", 1)[1].rsplit("/", 1)[0]
+            if server_id not in oauth_servers():
+                return self.send_json({"detail": "Not Found"}, 404)
+            return self.redirect(f"/stub-provider/authorize?server={urllib.parse.quote(server_id)}")
+        if path == "/stub-provider/authorize":
+            server_id = urllib.parse.parse_qs(query).get("server", [""])[0]
+            name = oauth_servers().get(server_id, "a connector")
+            buttons = (f"<input type=hidden name=server value='{html.escape(server_id)}'>"
+                       "<button type=submit name=decision value=allow id=allow>Allow access</button>"
+                       "<button type=submit name=decision value=deny id=deny "
+                       "style='background:#fff;color:#2456d6;border:1px solid #c8d1dc'>Deny</button>")
+            page = IDP_PAGE.format(
+                title=html.escape(f"Allow Theseus Stub to use {name}?"),
+                text="This is a stub OAuth provider. Nothing leaves your Mac.",
+                action="/stub-provider/decide",
+                fields=buttons,
+            ).replace("<button type=submit id=continue>Continue</button>", "")
+            return self.send_html(page)
+        if path.startswith("/oauth/clients/mcp:") and path.endswith("/callback"):
+            server_id = path.split("mcp:", 1)[1].rsplit("/", 1)[0]
+            params = urllib.parse.parse_qs(query)
+            if "error" in params:
+                return self.redirect("/?error=" + urllib.parse.quote_plus("The provider denied access."))
+            CONNECTED.add(server_id)
+            return self.redirect("/")
+        if path == "/ws/socket.io/":
+            return self.websocket()
+        if path.startswith("/stub-tools/"):
+            return self.tool_server_get(path, query)
+        if path == "/api/v1/configs/tool_servers":
+            if not self.is_admin(claims):
+                return self.send_json({"detail": "Unauthorized"}, 401 if not claims else 403)
+            return self.send_json({"TOOL_SERVER_CONNECTIONS": STATE["connections"]})
+        if path == "/api/v1/users/default/permissions":
+            if not self.is_admin(claims):
+                return self.send_json({"detail": "Unauthorized"}, 401 if not claims else 403)
+            return self.send_json(STATE["permissions"])
+        if path == "/api/v1/auths/admin/config":
+            if not self.is_admin(claims):
+                return self.send_json({"detail": "Unauthorized"}, 401 if not claims else 403)
+            return self.send_json({"WEBUI_URL": f"http://{self.headers.get('Host', 'localhost:8765')}", "ENABLE_SIGNUP": False})
+        if path == "/api/v1/users/user/settings":
+            if not claims:
+                return self.unauthorized()
+            return self.send_json(STATE["settings"].get(claims["email"]) or {"ui": {}})
+        if path == "/api/v1/chats/pinned":
+            # Nothing starred; the drawer loads this with the first page and needs both.
+            return self.send_json([] if claims else {"detail": "Not authenticated"}, 200 if claims else 401)
+        if path == f"/api/v1/chats/{LONG_CHAT()['id']}":
+            return self.send_json(LONG_CHAT())
+        if path.startswith("/api/v1/chats/") or path.startswith("/api/tasks/chat/"):
+            return self.send_json({"detail": "Not Found"}, 404)
+        if path == "/":
+            return self.send_html("<!doctype html><p style='font:17px sans-serif;padding:48px'>Open WebUI (stub)</p>")
+        self.send_json({"detail": "Not Found"}, 404)
+
+    def do_DELETE(self):  # noqa: N802
+        path = self.path.partition("?")[0]
+        if skills_route(self, "DELETE", path, self.bearer_claims()):
+            return
+        if not self.bearer_claims():
+            return self.unauthorized()
+        prefix = "/api/v1/auths/oauth/sessions/"
+        if path.startswith(prefix):
+            provider = urllib.parse.unquote(path[len(prefix):])
+            server_id = provider.split("mcp:", 1)[-1]
+            if server_id not in CONNECTED:
+                return self.send_json({"detail": "No OAuth session found for this provider"}, 404)
+            CONNECTED.discard(server_id)
+            return self.send_json(True)
+        self.send_json({"detail": "Not Found"}, 404)
+
+    def do_POST(self):  # noqa: N802
+        path = self.path.partition("?")[0]
+        if skills_route(self, "POST", path, self.bearer_claims()):
+            return
+        body = self.body()
+        if path == "/api/v1/auths/signin":
+            email = (body.get("email") or "").strip().lower()
+            if body.get("password") != PASSWORD:
+                return self.send_json({"detail": "The email or password provided is incorrect. Please check for typos and try logging in again."}, 400)
+            local = email.split("@")[0]
+            if local in ("verify", "enroll", "recover"):
+                return self.send_json(challenge(email, local))
+            return self.send_json(session_user(email, role_of(email)))
+        if path == "/api/v1/auths/signup":
+            # New Accounts wait for approval, like Open WebUI's default user role.
+            user = session_user((body.get("email") or "").strip().lower(), "pending")
+            user["name"] = body.get("name") or user["name"]
+            return self.send_json(user)
+        if path == "/api/v1/auths/signout":
+            return self.send_json({"status": True})
+        if path.startswith("/api/v1/auths/mfa/"):
+            return self.mfa(path.rsplit("/mfa/", 1)[1], body)
+        if path.startswith("/oauth/") and path.endswith("/login/callback"):
+            provider = path.split("/")[2]
+            email = body.get("email") or "sso@example.com"
+            if provider == "stub-mfa":
+                return self.redirect("/auth?mfa=1", [f"mfa_pending={email}; Path=/"])
+            return self.redirect("/auth", [f"token={mint_token(email, 'admin')}; Path=/; SameSite=Lax"])
+        if path == "/api/chat/completions":
+            # #183: stream@ / incognito@ get the long SSE stream; everyone else falls through to
+            # the Socket.IO completion below (#186: execute:tool for personal connectors).
+            claims = self.bearer_claims()
+            if claims and claims["email"].split("@")[0] in ("stream", "incognito", "long"):
+                return self.stream_completion()
+        if path == "/api/v1/chats/new":
+            claims = self.bearer_claims()
+            if not claims:
+                return self.unauthorized()
+            # The SSE path saves the finished turn; answer with a Chat document of that shape.
+            saved = json.loads((FIXTURES / "stream/plain.chat.after-first.json").read_text())
+            saved["title"] = (body.get("chat") or {}).get("title") or saved.get("title")
+            return self.send_json(saved)
+        if path == "/stub-provider/decide":
+            server_id = body.get("server", "")
+            if body.get("decision") == "allow":
+                return self.redirect(f"/oauth/clients/mcp:{urllib.parse.quote(server_id)}/callback?code=stub-code&state=s")
+            return self.redirect(f"/oauth/clients/mcp:{urllib.parse.quote(server_id)}/callback?error=access_denied")
+        if path == "/auth/mfa":
+            if body.get("code") != TOTP:
+                return self.redirect("/auth?mfa=1")
+            return self.redirect("/", [f"token={mint_token('sso-mfa@example.com', 'admin')}; Path=/; SameSite=Lax"])
+        if path == "/api/v1/stub/reset":
+            reset_state()
+            return self.send_json({"status": True})
+        if path.startswith("/stub-tools/"):
+            return self.tool_server_post(path, body)
+        claims = self.bearer_claims()
+        if path.startswith("/api/v1/configs/") or path == "/api/v1/users/default/permissions":
+            if not self.is_admin(claims):
+                return self.send_json({"detail": "Unauthorized"}, 401 if not claims else 403)
+        if path == "/api/v1/configs/tool_servers":
+            STATE["connections"] = body.get("TOOL_SERVER_CONNECTIONS") or []
+            return self.send_json({"TOOL_SERVER_CONNECTIONS": STATE["connections"]})
+        if path == "/api/v1/configs/tool_servers/verify":
+            return self.verify_tool_server(body)
+        if path == "/api/v1/configs/oauth/clients/register":
+            if not body.get("url") or not body.get("client_id"):
+                return self.send_json({"detail": "Failed to register OAuth client: missing url"}, 400)
+            if body.get("client_secret"):
+                # Static credentials: no dynamic registration, any provider works (#193).
+                return self.send_json({"status": True, "oauth_client_info": "gAAAAAB-stub-static-" + b64url(body["client_id"].encode())})
+            if "github" in body["url"].lower():
+                return self.send_json({"detail": "Failed to register OAuth client: Dynamic client registration failed: 404 page not found"}, 400)
+            return self.send_json({"status": True, "oauth_client_info": "gAAAAAB-stub-" + b64url(body["client_id"].encode())})
+        if path == "/api/v1/users/default/permissions":
+            STATE["permissions"] = body
+            return self.send_json(body)
+        if path == "/api/v1/users/user/settings/update":
+            if not claims:
+                return self.unauthorized()
+            email = claims["email"]
+            stored = STATE["settings"].setdefault(email, {"ui": {}})
+            for key, value in body.items():
+                if key != "ui":
+                    stored[key] = value
+            ui = dict(body.get("ui") or {})
+            allowed = role_of(email) == "admin" or permissions_for(email)["features"].get("direct_tool_servers")
+            if "toolServers" in ui and not allowed:
+                ui.pop("toolServers")
+            stored.setdefault("ui", {}).update(ui)
+            return self.send_json(stored)
+        if path == "/api/chat/completions":
+            if not claims:
+                return self.unauthorized()
+            return self.start_completion(claims, body)
+        self.send_json({"detail": "Not Found"}, 404)
+
+    def stream_completion(self):
+        """An OpenAI-style SSE stream, one chunk every 80 ms, then [DONE] (#183)."""
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+
+        def emit(delta, finish=None):
+            chunk = {"id": "stub-stream", "object": "chat.completion.chunk", "created": int(time.time()),
+                     "model": "claude-haiku-5-5", "choices": [{"index": 0, "delta": delta, "finish_reason": finish}]}
+            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
+            self.wfile.flush()
+
+        try:
+            emit({"role": "assistant"})
+            for piece in sse_chunks(long_response()):
+                emit({"content": piece})
+                time.sleep(0.08)
+            emit({}, "stop")
+            self.wfile.write(b"data: [DONE]\n\n")
+            self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        self.close_connection = True
+
+    def is_admin(self, claims):
+        return bool(claims) and role_of(claims.get("email")) == "admin"
+
+    # MARK: fake OpenAPI tool server (#186)
+
+    def tool_server_authorized(self):
+        auth = self.headers.get("Authorization")
+        return auth is None or auth == f"Bearer {TOOL_KEY}"
+
+    def tool_server_get(self, path, query):
+        if not self.tool_server_authorized():
+            return self.send_json({"detail": "Invalid key"}, 401)
+        if path == "/stub-tools/openapi.json":
+            return self.send_json(TOOL_SPEC)
+        if path == "/stub-tools/notes":
+            tag = urllib.parse.parse_qs(query).get("tag", [None])[0]
+            return self.send_json([note for note in NOTES if tag in (None, note["tag"])])
+        return self.send_json({"detail": "Not Found"}, 404)
+
+    def tool_server_post(self, path, body):
+        if not self.tool_server_authorized():
+            return self.send_json({"detail": "Invalid key"}, 401)
+        if path == "/stub-tools/notes":
+            note = {"id": str(len(NOTES) + 1), "text": body.get("text", ""), "tag": "home"}
+            NOTES.append(note)
+            return self.send_json(note)
+        return self.send_json({"detail": "Not Found"}, 404)
+
+    def verify_tool_server(self, body):
+        url = (body.get("url") or "").strip()
+        if not url or "down" in url:
+            return self.send_json({"detail": "Failed to connect to the tool server"}, 400)
+        if body.get("type") == "mcp":
+            if body.get("auth_type") in ("oauth_2.1", "oauth_2.1_static"):
+                host = urllib.parse.urlsplit(url)
+                issuer = f"{host.scheme}://{host.netloc}/"
+                return self.send_json({"status": True, "oauth_server_metadata": {
+                    "issuer": issuer, "authorization_endpoint": issuer + "authorize", "token_endpoint": issuer + "token",
+                    "registration_endpoint": issuer + "register", "response_types_supported": ["code"]}})
+            return self.send_json({"status": True, "specs": [
+                {"name": "search_docs", "description": "Search the docs", "parameters": {"type": "object", "properties": {}}},
+                {"name": "read_page", "description": "Read one page", "parameters": {"type": "object", "properties": {}}},
+            ]})
+        path = body.get("path") or "openapi.json"
+        spec_url = path if "://" in path else url.rstrip("/") + "/" + path.lstrip("/")
+        headers = {"Accept": "application/json"}
+        if body.get("auth_type") == "bearer" and body.get("key"):
+            headers["Authorization"] = f"Bearer {body['key']}"
+        try:
+            with urllib.request.urlopen(urllib.request.Request(spec_url, headers=headers), timeout=5) as response:
+                return self.send_json(json.loads(response.read()))
+        except Exception:  # noqa: BLE001 - any failure is "couldn't connect", like Open WebUI
+            return self.send_json({"detail": "Failed to connect to the tool server"}, 400)
+
+    # MARK: Socket.IO + completions (#186: execute:tool)
+
+    def websocket(self):
+        key = self.headers.get("Sec-WebSocket-Key")
+        if not key or "websocket" not in (self.headers.get("Upgrade") or "").lower():
+            return self.send_json({"detail": "Expected a WebSocket"}, 400)
+        accept = base64.b64encode(hashlib.sha1((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode()).digest()).decode()
+        self.protocol_version = "HTTP/1.1"  # URLSession's WebSocket wants an HTTP/1.1 upgrade
+        self.send_response(101, "Switching Protocols")
+        self.send_header("Upgrade", "websocket")
+        self.send_header("Connection", "Upgrade")
+        self.send_header("Sec-WebSocket-Accept", accept)
+        self.end_headers()
+        self.wfile.flush()
+        self.close_connection = True
+        session = SocketSession(self)
+        session.run()
+
+    def start_completion(self, claims, body):
+        session = SESSIONS.get(body.get("session_id") or "")
+        chat_id = body.get("chat_id") or f"stub-chat-{int(time.time() * 1000)}"
+        message_id = ((body.get("message_ids") or [{}])[0]).get("message_id") or "stub-message"
+        if session is None:
+            return self.send_json({"detail": "No live session"}, 400)
+        threading.Thread(target=run_completion, args=(session, chat_id, message_id, body), daemon=True).start()
+        return self.send_json({"status": True, "task_ids": ["stub-task"], "chat_id": chat_id})
+
+    def mfa(self, action, body):
+        token = body.get("challenge_token", "")
+        if token not in CHALLENGES:
+            return self.send_json({"detail": "This authentication step expired. Please start again."}, 401)
+        email, step = CHALLENGES[token]
+        if action == "verify" and step == "verify":
+            code = (body.get("code") or "").strip().lower()
+            ok = code == RECOVERY if body.get("recovery") else code == TOTP
+            if not ok:
+                return self.send_json({"detail": "Invalid or already used code."}, 401)
+            del CHALLENGES[token]
+            return self.send_json(session_user(email, "admin"))
+        if action == "enroll/start" and step == "enroll":
+            return self.send_json({"manual_key": "JBSWY3DPEHPK3PXP", "qr_code": "data:image/svg+xml;base64,"})
+        if action == "enroll/confirm" and step == "enroll":
+            if (body.get("code") or "").strip() != TOTP:
+                return self.send_json({"detail": "Invalid code. Check your authenticator and try again."}, 401)
+            del CHALLENGES[token]
+            user = session_user(email, "admin")
+            user["recovery_codes"] = ["abcd-efgh", "ijkl-mnop", "qrst-uvwx", "yzab-cdef", "ghij-klmn", "opqr-stuv"]
+            return self.send_json(user)
+        if action == "recover" and step == "recover":
+            if body.get("reset_token") != RESET_TOKEN:
+                return self.send_json({"detail": "Invalid or expired operator recovery token."}, 401)
+            del CHALLENGES[token]
+            return self.send_json(challenge(email, "enroll"))
+        return self.send_json({"detail": "Invalid authentication request."}, 422)
+
+
+SESSIONS = {}
+
+
+class SocketSession:
+    """One Engine.IO v4 / Socket.IO v4 connection over a raw WebSocket: just enough for Theseus
+    (handshake, user-join, server-to-client events, and acks for `execute:tool` calls)."""
+
+    def __init__(self, handler):
+        self.handler = handler
+        self.sock = handler.connection
+        self.lock = threading.Lock()
+        self.sid = b64url(os.urandom(12))
+        self.next_ack = 1
+        self.acks = {}
+        self.open = True
+
+    def send(self, text):
+        data = text.encode()
+        header = bytearray([0x81])
+        if len(data) < 126:
+            header.append(len(data))
+        elif len(data) < 65536:
+            header.append(126)
+            header += len(data).to_bytes(2, "big")
+        else:
+            header.append(127)
+            header += len(data).to_bytes(8, "big")
+        with self.lock:
+            try:
+                self.sock.sendall(bytes(header) + data)
+            except OSError:
+                self.open = False
+
+    def read_frame(self):
+        reader = self.handler.rfile
+        head = reader.read(2)
+        if len(head) < 2:
+            return None, None
+        opcode = head[0] & 0x0F
+        length = head[1] & 0x7F
+        if length == 126:
+            length = int.from_bytes(reader.read(2), "big")
+        elif length == 127:
+            length = int.from_bytes(reader.read(8), "big")
+        mask = reader.read(4) if head[1] & 0x80 else b"\0\0\0\0"
+        payload = bytearray(reader.read(length))
+        for index in range(len(payload)):
+            payload[index] ^= mask[index % 4]
+        return opcode, bytes(payload)
+
+    def emit(self, payload, ack=False):
+        """Sends `42["events", payload]`; with `ack`, returns a waiter for the client's answer."""
+        if not ack:
+            self.send("42" + json.dumps(["events", payload]))
+            return None
+        ack_id = self.next_ack
+        self.next_ack += 1
+        waiter = {"event": threading.Event(), "result": None}
+        self.acks[ack_id] = waiter
+        self.send(f"42{ack_id}" + json.dumps(["events", payload]))
+        return waiter
+
+    def pinger(self):
+        while self.open:
+            time.sleep(20)
+            if self.open:
+                self.send("2")
+
+    def run(self):
+        self.send("0" + json.dumps({"sid": b64url(os.urandom(9)), "upgrades": [], "pingInterval": 25000,
+                                    "pingTimeout": 20000, "maxPayload": 1000000}))
+        threading.Thread(target=self.pinger, daemon=True).start()
+        user = None
+        try:
+            while self.open:
+                opcode, payload = self.read_frame()
+                if opcode is None or opcode == 0x8:
+                    break
+                if opcode == 0x9:
+                    continue
+                if opcode != 0x1:
+                    continue
+                text = payload.decode()
+                if text == "3" or text == "2":
+                    if text == "2":
+                        self.send("3")
+                    continue
+                if text.startswith("40"):
+                    auth = json.loads(text[2:] or "{}")
+                    user = claims_of(auth.get("token", "")) or {}
+                    SESSIONS[self.sid] = self
+                    self.send("40" + json.dumps({"sid": self.sid}))
+                elif text.startswith("42"):
+                    digits = ""
+                    rest = text[2:]
+                    while rest and rest[0].isdigit():
+                        digits += rest[0]
+                        rest = rest[1:]
+                    event = json.loads(rest)
+                    if digits:
+                        answer = [{"id": (user or {}).get("id", "stub"), "name": local((user or {}).get("email")).capitalize()}] \
+                            if event and event[0] == "user-join" else [None]
+                        self.send(f"43{digits}" + json.dumps(answer))
+                elif text.startswith("43"):
+                    digits = ""
+                    rest = text[2:]
+                    while rest and rest[0].isdigit():
+                        digits += rest[0]
+                        rest = rest[1:]
+                    waiter = self.acks.pop(int(digits or 0), None)
+                    if waiter:
+                        waiter["result"] = json.loads(rest or "[null]")
+                        waiter["event"].set()
+                elif text.startswith("41"):
+                    break
+        finally:
+            self.open = False
+            SESSIONS.pop(self.sid, None)
+
+
+def run_completion(session, chat_id, message_id, body):
+    """Streams a fake Response. With personal connectors in `tool_servers`, it first asks the app to
+    run one of their tools (`execute:tool`, like Open WebUI's middleware) and answers with the result."""
+    def envelope(kind, data):
+        return {"chat_id": chat_id, "message_id": message_id, "data": {"type": kind, "data": data}}
+
+    time.sleep(0.3)
+    session.emit(envelope("chat:active", {"active": True}))
+    servers = body.get("tool_servers") or []
+    output = []
+    if servers:
+        server = dict(servers[0])
+        specs = server.pop("specs", []) or [{}]
+        spec = next((item for item in specs if item.get("name") == "list_notes"), specs[0])
+        name = spec.get("name", "tool")
+        params = {"tag": "work"} if "tag" in ((spec.get("parameters") or {}).get("properties") or {}) else {}
+        title = ((server.get("info") or {}).get("title")) or server.get("url")
+        call_id = f"stub-call-{int(time.time() * 1000)}"
+        call = {"type": "function_call", "id": call_id, "call_id": call_id, "name": name,
+                "arguments": json.dumps(params), "status": "in_progress"}
+        session.emit(envelope("chat:completion", {"output": [call]}))
+        waiter = session.emit(envelope("execute:tool", {"id": call_id, "name": name, "params": params,
+                                                        "server": server, "session_id": session.sid}), ack=True)
+        answered = waiter["event"].wait(70)
+        result = (waiter["result"] or [None])[0] if answered else {"error": "Event call timed out."}
+        data = result[0] if isinstance(result, list) and len(result) == 2 else result
+        result_text = json.dumps(data, ensure_ascii=False)
+        call["status"] = "completed"
+        output = [call, {"type": "function_call_output", "id": f"fco-{call_id}", "call_id": call_id,
+                         "output": [{"type": "input_text", "text": result_text}], "status": "completed"}]
+        if isinstance(data, dict) and data.get("error"):
+            text = f"I tried **{title}** (`{name}`) from your device, but it failed: {data['error']}"
+        else:
+            text = f"Your personal connector **{title}** answered `{name}` from your device:\n\n```json\n{result_text}\n```"
+    else:
+        text = "Hello from the stub Server. This message carried no personal connectors."
+    message = {"type": "message", "id": f"msg-{message_id}", "status": "completed", "role": "assistant",
+               "content": [{"type": "output_text", "text": text}]}
+    session.emit(envelope("chat:completion", {"output": output + [message]}))
+    time.sleep(0.2)
+    session.emit(envelope("chat:completion", {"done": True, "output": output + [message], "title": "[stub] Personal connector"}))
+    session.emit(envelope("chat:active", {"active": False}))
+# MARK: Skills (#187)
+# In-memory Skills with owners and access grants, shaped like B/models/skills.py. Gates follow
+# B/routers/skills.py: create needs admin, workspace.skills or workspace.skills_import (401
+# otherwise); import needs admin or skills_import (403); load/url is admin-only (401).
+
+GROUPS = [
+    {"id": "group-legal", "name": "Legal", "description": "Contracts and compliance", "members": ["stub-writer@example.com"]},
+    {"id": "group-design", "name": "Design", "description": "", "members": []},
+]
+
+
+def _grant(principal_type, principal_id, permission="read"):
+    return {"id": f"grant-{principal_type}-{principal_id}-{permission}", "resource_type": "skill", "resource_id": "",
+            "principal_type": principal_type, "principal_id": principal_id, "permission": permission,
+            "created_at": int(time.time())}
+
+
+def _seed_skill(skill_id, name, owner, description, content, grants=(), active=True):
+    now = int(time.time())
+    return {"id": skill_id, "user_id": owner, "name": name, "description": description, "content": content,
+            "meta": {"i18n": None, "tags": []}, "is_active": active, "access_grants": list(grants),
+            "version_id": f"{skill_id}-v1", "updated_at": now, "created_at": now - 86400}
+
+
+ADMIN_ID = "stub-user@example.com"
+SKILLS = {s["id"]: s for s in [
+    _seed_skill("brand-voice", "Brand voice", ADMIN_ID, "Write the way the company sounds.",
+                "# Brand voice\n\n- Short sentences.\n- No jargon.\n- **Warm**, never chirpy.", [_grant("user", "*")]),
+    _seed_skill("legal-review", "Legal review", ADMIN_ID, "Flag risky clauses in contracts.",
+                "# Legal review\n\n1. List the parties.\n2. Flag indemnities and auto-renewals.", [_grant("group", "group-legal")]),
+    _seed_skill("release-notes", "Release notes", ADMIN_ID, "Turn merged changes into release notes.",
+                "# Release notes\n\nGroup changes as New, Improved and Fixed."),
+    _seed_skill("tone-check", "Tone check", "stub-writer@example.com", "Check a draft's tone before sending.",
+                "# Tone check\n\nRead the draft and suggest kinder wording."),
+]}
+
+STUB_SKILL_MD = ("---\nname: pdf-tools\ndescription: Fill in, merge and split PDF files.\n---\n\n"
+                 "# PDF tools\n\n1. Ask which pages matter.\n2. Fill the form fields.\n3. Return the finished PDF.\n")
+
+
+def _user_of(claims):
+    email = claims["email"]
+    return session_user(email, claims["role"])
+
+
+def _allowed(user, key):
+    node = user.get("permissions", {})
+    for part in key.split("."):
+        node = node.get(part, {}) if isinstance(node, dict) else {}
+    return node is True
+
+
+def _groups_of(user_id):
+    return {g["id"] for g in GROUPS if user_id in g["members"]}
+
+
+def _can(user, skill, permission):
+    if user["role"] == "admin" or skill["user_id"] == user["id"]:
+        return True
+    groups = _groups_of(user["id"])
+    for g in skill["access_grants"]:
+        if permission == "read" and g["permission"] not in ("read", "write"):
+            continue
+        if permission == "write" and g["permission"] != "write":
+            continue
+        if g["principal_type"] == "user" and g["principal_id"] in ("*", user["id"]):
+            return True
+        if g["principal_type"] == "group" and g["principal_id"] in groups:
+            return True
+    return False
+
+
+def _owner(user_id):
+    email = user_id.removeprefix("stub-")
+    role = "admin" if email == "user@example.com" else "user"
+    return {"id": user_id, "name": email.split("@")[0].capitalize(), "email": email, "role": role}
+
+
+def _public(skill, user=None, detail=False):
+    out = {k: v for k, v in skill.items() if k != "content"}
+    out["user"] = _owner(skill["user_id"])
+    if user is not None:
+        out["write_access"] = _can(user, skill, "write")
+    if detail:
+        out["content"] = skill["content"]
+    return out
+
+
+def _filter_grants(user, grants):
+    """Like filter_allowed_access_grants: users without sharing.public_skills lose `*`."""
+    grants = [g for g in (grants or []) if isinstance(g, dict) and g.get("principal_type") in ("user", "group")
+              and g.get("permission") in ("read", "write") and g.get("principal_id")]
+    if user["role"] != "admin" and not _allowed(user, "sharing.public_skills"):
+        grants = [g for g in grants if not (g["principal_type"] == "user" and g["principal_id"] == "*")]
+    return [_grant(g["principal_type"], g["principal_id"], g["permission"]) for g in grants]
+
+
+def _frontmatter(text):
+    if not text.startswith("---"):
+        return {}
+    fields = {}
+    for line in text.splitlines()[1:]:
+        if line.strip() == "---":
+            return fields
+        key, sep, value = line.partition(":")
+        if sep and not line.startswith((" ", "\t")):
+            fields[key.strip()] = value.strip().strip('"').strip("'")
+    return {}
+
+
+def _slug(name):
+    out, dash = "", False
+    for ch in name.lower():
+        if ch.isascii() and (ch.isalnum() or ch == "_"):
+            out += ch
+            dash = False
+        elif out and not dash:
+            out += "-"
+            dash = True
+    return out.strip("-") or "imported-skill"
+
+
+def _packages_from_file(filename, data):
+    import io
+    import zipfile
+    lower = filename.lower()
+    if lower.endswith(".json"):
+        value = json.loads(data)
+        return value if isinstance(value, list) else [value]
+    if lower.endswith((".zip", ".skill")) or data.startswith(b"PK"):
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            names = [n for n in archive.namelist() if n.endswith("SKILL.md")]
+            if not names:
+                raise ValueError("Archive contains no SKILL.md")
+            packages = []
+            for name in names:
+                root = name[: -len("SKILL.md")]
+                files = [{"path": n[len(root):], "content": archive.read(n).decode("utf-8", "replace")}
+                         for n in archive.namelist() if n.startswith(root) and not n.endswith("/")]
+                packages.append({"files": files})
+            return packages
+    if lower.endswith(".md"):
+        return [{"files": [{"path": "SKILL.md", "content": data.decode("utf-8", "replace")}]}]
+    raise ValueError("Use JSON, ZIP, .skill, or Markdown")
+
+
+def _normalise(package):
+    files = package.get("files") or [{"path": "SKILL.md", "content": package.get("content", "")}]
+    root = next((f for f in files if f["path"] == "SKILL.md"), None)
+    if root is None:
+        raise ValueError("A skill requires a UTF-8 SKILL.md at its root")
+    fm = _frontmatter(root["content"])
+    name = package.get("name") or fm.get("name") or "Imported skill"
+    return {"id": package.get("id") or _slug(name), "name": name,
+            "description": package.get("description", fm.get("description", "")),
+            "meta": package.get("meta") or {}, "files": files}
+
+
+def _multipart(handler, raw):
+    """Parses multipart/form-data into ([(filename, bytes)], {field: text})."""
+    ctype = handler.headers.get("Content-Type", "")
+    boundary = ctype.split("boundary=", 1)[-1].strip().strip('"').encode()
+    files, fields = [], {}
+    for part in raw.split(b"--" + boundary):
+        part = part.strip(b"\r\n")
+        if not part or part == b"--":
+            continue
+        head, _, content = part.partition(b"\r\n\r\n")
+        disposition = head.decode("utf-8", "replace")
+        name = disposition.split('name="', 1)[-1].split('"', 1)[0]
+        if 'filename="' in disposition:
+            filename = disposition.split('filename="', 1)[1].split('"', 1)[0]
+            files.append((filename, content))
+        else:
+            fields[name] = content.decode("utf-8", "replace")
+    return files, fields
+
+
+def skills_route(handler, method, path, claims):
+    """Serves /api/v1/skills/*, /api/v1/groups/, default permissions and /stub-skills/. Returns
+    True when it answered."""
+    if path.startswith("/stub-skills/") and method == "GET":
+        data = STUB_SKILL_MD.encode()
+        handler.send_response(200)
+        handler.send_header("Content-Type", "text/markdown; charset=utf-8")
+        handler.send_header("Content-Length", str(len(data)))
+        handler.end_headers()
+        handler.wfile.write(data)
+        return True
+    # Default permissions are #186's (STATE, so admins can change them in the walkthrough).
+    if not (path.startswith("/api/v1/skills") or path == "/api/v1/groups/"):
+        return False
+    if not claims or claims.get("role") == "pending":
+        handler.unauthorized()
+        return True
+    user = _user_of(claims)
+    is_admin = user["role"] == "admin"
+    raw = b""
+    if method == "POST":
+        length = int(handler.headers.get("Content-Length") or 0)
+        raw = handler.rfile.read(length) if length else b""
+    body = json.loads(raw or b"{}") if handler.headers.get("Content-Type", "").startswith("application/json") else {}
+
+    if method == "GET" and path == "/api/v1/groups/":
+        visible = GROUPS if is_admin else [g for g in GROUPS if user["id"] in g["members"]]
+        handler.send_json([{k: v for k, v in g.items() if k != "members"} | {"member_count": len(g["members"])} for g in visible])
+        return True
+    if method == "GET" and path == "/api/v1/users/default/permissions":
+        if not is_admin:
+            handler.send_json({"detail": "You do not have permission to access this resource. Please contact your administrator for assistance."}, 401)
+            return True
+        handler.send_json(fixture("users.default-permissions.json"))
+        return True
+    if method == "GET" and path in ("/api/v1/skills/", "/api/v1/skills"):
+        items = sorted((s for s in SKILLS.values() if _can(user, s, "read")), key=lambda s: -s["updated_at"])
+        handler.send_json([_public(s) for s in items])
+        return True
+
+    parts = path.removeprefix("/api/v1/skills/").split("/")
+    if parts[0] == "id" and len(parts) >= 2:
+        skill = SKILLS.get(parts[1])
+        action = "/".join(parts[2:])
+        if skill is None:
+            handler.send_json({"detail": "We could not find what you're looking for :/"}, 404)
+            return True
+        if method == "GET" and action == "":
+            if not _can(user, skill, "read"):
+                handler.send_json({"detail": "You do not have permission to access this resource."}, 401)
+                return True
+            handler.send_json(_public(skill, user, detail=True))
+            return True
+        if not _can(user, skill, "write"):
+            handler.send_json({"detail": "401 Unauthorized"}, 401)
+            return True
+        if method == "POST" and action == "update":
+            for key in ("name", "description", "content", "is_active"):
+                if key in body and body[key] is not None:
+                    skill[key] = body[key]
+            if body.get("access_grants") is not None:
+                skill["access_grants"] = _filter_grants(user, body["access_grants"])
+            skill["updated_at"] = int(time.time())
+            skill["version_id"] = f"{skill['id']}-v{int(time.time() * 1000)}"
+            handler.send_json(_public(skill, detail=True))
+            return True
+        if method == "POST" and action == "toggle":
+            skill["is_active"] = not skill["is_active"]
+            skill["updated_at"] = int(time.time())
+            handler.send_json(_public(skill, detail=True))
+            return True
+        if method == "POST" and action == "access/update":
+            skill["access_grants"] = _filter_grants(user, body.get("access_grants"))
+            handler.send_json(_public(skill, detail=True))
+            return True
+        if method == "DELETE" and action == "delete":
+            del SKILLS[skill["id"]]
+            handler.send_json(True)
+            return True
+
+    if method == "POST" and path == "/api/v1/skills/create":
+        if not (is_admin or _allowed(user, "workspace.skills") or _allowed(user, "workspace.skills_import")):
+            handler.send_json({"detail": "401 Unauthorized"}, 401)
+            return True
+        return _create(handler, user, body)
+    if method == "POST" and path == "/api/v1/skills/load/url":
+        if not is_admin:
+            handler.send_json({"detail": "You do not have permission to access this resource. Please contact your administrator for assistance."}, 401)
+            return True
+        url = body.get("url", "")
+        if not url.startswith(("http://", "https://")):
+            handler.send_json({"detail": "Use an HTTP(S) URL without embedded credentials"}, 400)
+            return True
+        handler.send_json([_normalise({"files": [{"path": "SKILL.md", "content": STUB_SKILL_MD},
+                                                 {"path": "scripts/fill.py", "content": "print('fill')\n"}]})])
+        return True
+    if method == "POST" and path in ("/api/v1/skills/import/preview", "/api/v1/skills/import"):
+        if not (is_admin or _allowed(user, "workspace.skills_import")):
+            handler.send_json({"detail": "Import permission required"}, 403)
+            return True
+        files, fields = _multipart(handler, raw)
+        try:
+            packages = [_normalise(p) for name, data in files for p in _packages_from_file(name, data)]
+        except (ValueError, KeyError) as error:
+            handler.send_json({"detail": str(error)}, 400)
+            return True
+        names = {s["name"] for s in SKILLS.values()}
+        if path.endswith("/preview"):
+            out = []
+            for index, p in enumerate(packages):
+                existing = SKILLS.get(p["id"])
+                writable = bool(existing) and _can(user, existing, "write")
+                out.append({"index": index, **{k: v for k, v in p.items() if k != "files"},
+                            "files": [{"path": f["path"], "size": len(f["content"].encode()), "encoding": None} for f in p["files"]],
+                            "id_taken": existing is not None, "name_taken": p["name"] in names,
+                            "can_replace": writable, "expected_version_id": existing["version_id"] if writable else None})
+            handler.send_json(out)
+            return True
+        decisions = json.loads(fields.get("decisions") or "[]")
+        if len(decisions) != len(packages):
+            handler.send_json({"detail": "One decision is required per skill"}, 400)
+            return True
+        results = []
+        for p, choice in zip(packages, decisions):
+            action = choice.get("action", "skip")
+            sid, name = choice.get("id", p["id"]), choice.get("name", p["name"])
+            content = next(f["content"] for f in p["files"] if f["path"] == "SKILL.md")
+            if action == "skip":
+                results.append({"status": "skipped", "id": p["id"]})
+            elif action == "replace" and sid in SKILLS and _can(user, SKILLS[sid], "write"):
+                SKILLS[sid].update(name=name, description=p["description"], content=content, updated_at=int(time.time()))
+                results.append({"status": "saved", "id": sid})
+            elif action in ("create", "copy"):
+                if sid in SKILLS or name in {s["name"] for s in SKILLS.values()}:
+                    results.append({"status": "error", "id": p["id"], "error": "A skill with this name already exists"})
+                    continue
+                SKILLS[sid] = _seed_skill(sid, name, user["id"], p["description"], content)
+                SKILLS[sid]["created_at"] = SKILLS[sid]["updated_at"]
+                results.append({"status": "saved", "id": sid})
+            else:
+                results.append({"status": "error", "id": p["id"], "error": "Unknown import action"})
+        handler.send_json(results)
+        return True
+    handler.send_json({"detail": "Not Found"}, 404)
+    return True
+
+
+def _create(handler, user, body):
+    sid = (body.get("id") or "").lower().replace(" ", "-")
+    if not sid or any(not (c.isascii() and (c.isalnum() or c in "_-")) for c in sid):
+        handler.send_json({"detail": "Invalid skill ID"}, 400)
+        return True
+    if sid in SKILLS:
+        handler.send_json({"detail": "Uh-oh! This id is already registered. Please choose another id string."}, 400)
+        return True
+    if body.get("name") in {s["name"] for s in SKILLS.values()}:
+        handler.send_json({"detail": "A skill with this name already exists"}, 409)
+        return True
+    skill = _seed_skill(sid, body.get("name", sid), user["id"], body.get("description") or "", body.get("content") or "",
+                        _filter_grants(user, body.get("access_grants")), body.get("is_active", True))
+    skill["created_at"] = skill["updated_at"]
+    SKILLS[sid] = skill
+    out = _public(skill)
+    out.pop("user", None)
+    handler.send_json(out)
+    return True
+
+
+class QuickServer(ThreadingHTTPServer):
+    """Skips HTTPServer's reverse-DNS lookup of the bind address, which can stall startup."""
+
+    def server_bind(self):
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = "localhost", self.server_address[1]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--host", default="127.0.0.1",
+                        help="bind address; 0.0.0.0 lets a real Server on the LAN reach /stub-tools (live #186 checks)")
+    parser.add_argument("--no-sso", action="store_true", help="advertise no OAuth providers")
+    parser.add_argument("--confirm-password", action="store_true", help="ask for the password twice on sign-up")
+    args = parser.parse_args()
+    Handler.sso = not args.no_sso
+    Handler.confirm_password = args.confirm_password
+    sys.stdout.reconfigure(line_buffering=True)
+    reset_state()
+    server = QuickServer((args.host, args.port), Handler)
+    print(f"Theseus stub server on http://localhost:{args.port} (password: {PASSWORD})")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

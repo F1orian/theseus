@@ -1,0 +1,11 @@
+[
+  {
+    "id": "demo-sandbox",
+    "url": "http://terminal.example:8000",
+    "name": "Demo sandbox",
+    "contexts": {},
+    "config": {
+      "chat_uploads": "default"
+    }
+  }
+]

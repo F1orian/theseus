@@ -1,0 +1,32 @@
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"reasoning_content":""},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"reasoning_content":""},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":"Theseus's mouse was"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":" an"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":" electromechanical maze-"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":"solving m"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":"ouse built by Claude"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":" Shannon in 1950,"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":" one"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":" of the earliest dem"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":"onstrations of machine lear"},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{"content":"ning."},"finish_reason":null}]}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":157,"completion_tokens":200,"total_tokens":357,"prompt_tokens_details":{"cached_tokens":0,"cached_creation_tokens":0,"cache_write_tokens":0}}}
+
+data: {"id":"msg_000000000000000000000054","object":"chat.completion.chunk","created":1792780382,"model":"claude-haiku-5-5","choices":[],"usage":{"prompt_tokens":157,"completion_tokens":200,"total_tokens":357,"prompt_tokens_details":{"cached_tokens":0,"cached_creation_tokens":0,"cache_write_tokens":0}}}
+
+data: [DONE]
+

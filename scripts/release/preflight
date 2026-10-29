@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Release preflight (docs/release/checklist.md): the checks App Review would otherwise catch.
+#
+# Usage: scripts/release/preflight [--build-phase]
+#   --build-phase  only the placeholder check; the Theseus target runs this for Release builds,
+#                  so an archive can't ship placeholder support/privacy links.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+LINKS="$ROOT/Modules/Sources/DesignSystem/PublicLinks.swift"
+SITE="$ROOT/site"
+failures=0
+
+fail() {
+    # Xcode shows "error:" lines in the issue navigator.
+    echo "error: $*" >&2
+    failures=$((failures + 1))
+}
+
+# 1. Public links: the support email, repository and website must be real and the same in the app and
+#    on the website (App Review 1.5, 5.1.1(i)).
+for file in "$LINKS" "$SITE"/index.html "$SITE"/*/index.html; do
+    if grep -nE 'OWNER|/REPO\b|example\.com' "$file" >/dev/null; then
+        fail "placeholder link or email in ${file#"$ROOT"/} (set the public repository and support email)"
+    fi
+done
+links_email="$(sed -nE 's/.*supportEmail = "([^"]+)".*/\1/p' "$LINKS")"
+links_repo="$(sed -nE 's/.*repository = url\("([^"]+)"\).*/\1/p' "$LINKS")"
+for file in "$SITE"/index.html "$SITE"/*/index.html; do
+    while read -r email; do
+        [[ "$email" == "$links_email" ]] || fail "${file#"$ROOT"/} mails $email, the app says $links_email"
+    done < <(grep -oE 'mailto:[^"]+' "$file" | sed 's/^mailto://' | sort -u)
+    while read -r repo; do
+        [[ "$repo" == "$links_repo"* ]] || fail "${file#"$ROOT"/} links $repo, the app's repository is $links_repo"
+    done < <(grep -oE 'https://github\.com/[^"]+' "$file" | sort -u)
+done
+
+if [[ "${1:-}" == "--build-phase" ]]; then
+    exit $((failures > 0))
+fi
+
+# 2. Privacy manifests in every bundle.
+for manifest in App/Resources Extensions/Widgets Extensions/Share; do
+    plutil -lint -s "$ROOT/$manifest/PrivacyInfo.xcprivacy" || fail "missing or invalid $manifest/PrivacyInfo.xcprivacy"
+done
+
+# 3. No account creation (ADR 0170): App Store apps that create accounts must delete them in-app.
+if grep -rn 'auths/signup' "$ROOT/Modules/Sources" "$ROOT/App/Sources" "$ROOT/Extensions" >/dev/null; then
+    fail "the app calls the sign-up endpoint (ADR 0170)"
+fi
+
+# 4. Acknowledgements match the resolved packages and vendored code.
+python3 "$ROOT/scripts/legal/gen_acknowledgements.py" --check || fail "acknowledgements are stale: run scripts/legal/gen_acknowledgements.py"
+
+# 5. Nothing Claude/Anthropic-branded in user-facing strings (App Review 4.1, 5.2.1). Claude Shannon,
+#    Monet and Lorrain are the only Claudes allowed; the AI data disclosure names providers as examples
+#    ("OpenAI, Anthropic, Google", ADR 0171), which is a factual mention, not branding.
+if grep -rnE '"[^"]*\b(Claude|Anthropic)\b[^"]*"' "$ROOT/Modules/Sources" "$ROOT/App/Sources" "$ROOT/Extensions" \
+    --include='*.swift' | grep -vE 'Claude (Shannon|Monet|Lorrain)|OpenAI, Anthropic, Google' \
+    | grep -vE '^\S+:[0-9]+:\s*//' >/dev/null; then
+    fail "a user-facing string mentions Claude or Anthropic"
+fi
+
+if [[ $failures -gt 0 ]]; then
+    echo "preflight: $failures problem(s)" >&2
+    exit 1
+fi
+echo "preflight: OK"

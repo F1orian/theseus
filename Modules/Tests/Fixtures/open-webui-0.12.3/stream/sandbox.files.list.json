@@ -1,0 +1,20 @@
+{
+  "dir": "/home/user/theseus-test",
+  "writable": true,
+  "entries": [
+    {
+      "name": "hello.txt",
+      "type": "file",
+      "size": 2,
+      "modified": 1792829787.2843244,
+      "writable": true
+    },
+    {
+      "name": "planets.csv",
+      "type": "file",
+      "size": 42,
+      "modified": 1792829809.196934,
+      "writable": true
+    }
+  ]
+}

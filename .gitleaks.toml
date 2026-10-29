@@ -1,0 +1,13 @@
+# Recorded fixtures carry scrubbed placeholder tokens: base64 "scrubbed…" (c2NydWJiZWQ…) and the minimal
+# `{}.{"exp":1000}.sig` test JWT. The patterns are anchored to the whole secret, so a real key that merely
+# contains one of them still fails.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "scrubbed fixture placeholders"
+regexes = [
+  '''^eyJhbGciOiJIUzI1NiJ9\.c2NydWJiZWQ\.c2NydWJiZWQ$''',
+  '''^c2NydWJiZWQ(tY2hhbGxlbmdlLXRva2Vu[A-Za-z0-9]*)?$''',
+  '''^e30\.eyJleHAiOjEwMDB9\.c2ln$''',
+]

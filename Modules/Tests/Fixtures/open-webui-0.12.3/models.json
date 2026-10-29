@@ -1,0 +1,339 @@
+{
+  "data": [
+    {
+      "id": "claude-fable-5-1",
+      "name": "Fable 5.1",
+      "owned_by": "openai",
+      "openai": {
+        "id": "claude-fable-5-1",
+        "name": "claude-fable-5-1",
+        "owned_by": "openai",
+        "openai": {
+          "id": "claude-fable-5-1"
+        },
+        "urlIdx": 0,
+        "tags": [
+          {
+            "name": "Anthropic"
+          }
+        ],
+        "connection_type": "external"
+      },
+      "urlIdx": 0,
+      "tags": [
+        {
+          "name": "Anthropic"
+        }
+      ],
+      "connection_type": "external",
+      "provider": "",
+      "info": {
+        "version_id": "00000000-0000-4000-8000-0000000000aa",
+        "id": "claude-fable-5-1",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "base_model_id": null,
+        "name": "Fable 5.1",
+        "params": {},
+        "meta": {
+          "background_image_url": null,
+          "description": null,
+          "i18n": null,
+          "capabilities": {
+            "file_context": true,
+            "vision": true,
+            "file_upload": true,
+            "web_search": true,
+            "image_generation": true,
+            "code_interpreter": true,
+            "terminal": true,
+            "citations": true,
+            "status_updates": true,
+            "memory": true,
+            "builtin_tools": true
+          },
+          "knowledge": null,
+          "voice": null,
+          "voice_avatar": null,
+          "defaultFeatureIds": [
+            "web_search"
+          ],
+          "terminalId": "sandbox"
+        },
+        "access_grants": [],
+        "is_active": true,
+        "updated_at": 1792698021,
+        "created_at": 1792698021
+      },
+      "actions": [],
+      "filters": []
+    },
+    {
+      "id": "claude-opus-5-5",
+      "name": "Opus 5.5",
+      "owned_by": "openai",
+      "openai": {
+        "id": "claude-opus-5-5",
+        "name": "claude-opus-5-5",
+        "owned_by": "openai",
+        "openai": {
+          "id": "claude-opus-5-5"
+        },
+        "urlIdx": 0,
+        "tags": [
+          {
+            "name": "Anthropic"
+          }
+        ],
+        "connection_type": "external"
+      },
+      "urlIdx": 0,
+      "tags": [
+        {
+          "name": "Anthropic"
+        }
+      ],
+      "connection_type": "external",
+      "provider": "",
+      "info": {
+        "version_id": "00000000-0000-4000-8000-0000000000aa",
+        "id": "claude-opus-5-5",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "base_model_id": null,
+        "name": "Opus 5.5",
+        "params": {},
+        "meta": {
+          "background_image_url": null,
+          "description": null,
+          "i18n": null,
+          "capabilities": {
+            "file_context": true,
+            "vision": true,
+            "file_upload": true,
+            "web_search": true,
+            "image_generation": true,
+            "code_interpreter": true,
+            "terminal": true,
+            "citations": true,
+            "status_updates": true,
+            "memory": true,
+            "builtin_tools": true
+          },
+          "knowledge": null,
+          "voice": null,
+          "voice_avatar": null,
+          "defaultFeatureIds": [
+            "web_search"
+          ],
+          "terminalId": "sandbox"
+        },
+        "access_grants": [],
+        "is_active": true,
+        "updated_at": 1792698049,
+        "created_at": 1792698049
+      },
+      "actions": [],
+      "filters": []
+    },
+    {
+      "id": "claude-sonnet-5-5",
+      "name": "Sonnet 5.5",
+      "owned_by": "openai",
+      "openai": {
+        "id": "claude-sonnet-5-5",
+        "name": "claude-sonnet-5-5",
+        "owned_by": "openai",
+        "openai": {
+          "id": "claude-sonnet-5-5"
+        },
+        "urlIdx": 0,
+        "tags": [
+          {
+            "name": "Anthropic"
+          }
+        ],
+        "connection_type": "external"
+      },
+      "urlIdx": 0,
+      "tags": [
+        {
+          "name": "Anthropic"
+        }
+      ],
+      "connection_type": "external",
+      "provider": "",
+      "info": {
+        "version_id": "00000000-0000-4000-8000-0000000000aa",
+        "id": "claude-sonnet-5-5",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "base_model_id": null,
+        "name": "Sonnet 5.5",
+        "params": {},
+        "meta": {
+          "background_image_url": null,
+          "description": null,
+          "i18n": null,
+          "capabilities": {
+            "file_context": true,
+            "vision": true,
+            "file_upload": true,
+            "web_search": true,
+            "image_generation": true,
+            "code_interpreter": true,
+            "terminal": true,
+            "citations": true,
+            "status_updates": true,
+            "memory": true,
+            "builtin_tools": true
+          },
+          "knowledge": null,
+          "voice": null,
+          "voice_avatar": null,
+          "defaultFeatureIds": [
+            "web_search"
+          ],
+          "terminalId": "sandbox"
+        },
+        "access_grants": [],
+        "is_active": true,
+        "updated_at": 1792698084,
+        "created_at": 1792698084
+      },
+      "actions": [],
+      "filters": []
+    },
+    {
+      "id": "claude-haiku-5-5",
+      "name": "Haiku 5.5",
+      "owned_by": "openai",
+      "openai": {
+        "id": "claude-haiku-5-5",
+        "name": "claude-haiku-5-5",
+        "owned_by": "openai",
+        "openai": {
+          "id": "claude-haiku-5-5"
+        },
+        "urlIdx": 0,
+        "tags": [
+          {
+            "name": "Anthropic"
+          }
+        ],
+        "connection_type": "external"
+      },
+      "urlIdx": 0,
+      "tags": [
+        {
+          "name": "Anthropic"
+        }
+      ],
+      "connection_type": "external",
+      "provider": "",
+      "info": {
+        "version_id": "00000000-0000-4000-8000-0000000000aa",
+        "id": "claude-haiku-5-5",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "base_model_id": null,
+        "name": "Haiku 5.5",
+        "params": {},
+        "meta": {
+          "background_image_url": null,
+          "description": null,
+          "i18n": null,
+          "capabilities": {
+            "file_context": true,
+            "vision": true,
+            "file_upload": true,
+            "web_search": true,
+            "image_generation": true,
+            "code_interpreter": true,
+            "terminal": true,
+            "citations": true,
+            "status_updates": true,
+            "memory": true,
+            "builtin_tools": true
+          },
+          "knowledge": null,
+          "voice": null,
+          "voice_avatar": null,
+          "defaultFeatureIds": [
+            "web_search"
+          ],
+          "terminalId": "sandbox"
+        },
+        "access_grants": [],
+        "is_active": true,
+        "updated_at": 1792698035,
+        "created_at": 1792698035
+      },
+      "actions": [],
+      "filters": []
+    },
+    {
+      "id": "claude-opus-4-6",
+      "name": "Opus 4.6",
+      "owned_by": "openai",
+      "openai": {
+        "id": "claude-opus-4-6",
+        "name": "claude-opus-4-6",
+        "owned_by": "openai",
+        "openai": {
+          "id": "claude-opus-4-6"
+        },
+        "urlIdx": 0,
+        "tags": [
+          {
+            "name": "Anthropic"
+          }
+        ],
+        "connection_type": "external"
+      },
+      "urlIdx": 0,
+      "tags": [
+        {
+          "name": "Anthropic"
+        }
+      ],
+      "connection_type": "external",
+      "provider": "",
+      "info": {
+        "version_id": "00000000-0000-4000-8000-0000000000aa",
+        "id": "claude-opus-4-6",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "base_model_id": null,
+        "name": "Opus 4.6",
+        "params": {},
+        "meta": {
+          "background_image_url": null,
+          "description": null,
+          "i18n": null,
+          "capabilities": {
+            "file_context": true,
+            "vision": true,
+            "file_upload": true,
+            "web_search": true,
+            "image_generation": true,
+            "code_interpreter": true,
+            "terminal": true,
+            "citations": true,
+            "status_updates": true,
+            "memory": true,
+            "builtin_tools": true
+          },
+          "knowledge": null,
+          "voice": null,
+          "voice_avatar": null,
+          "defaultFeatureIds": [
+            "web_search"
+          ],
+          "terminalId": "sandbox"
+        },
+        "access_grants": [],
+        "is_active": true,
+        "updated_at": 1792698042,
+        "created_at": 1792698042
+      },
+      "actions": [],
+      "filters": []
+    }
+  ]
+}

@@ -1,0 +1,280 @@
+{
+ "id": "00000000-0000-4000-8000-0000000c1a00",
+ "user_id": "00000000-0000-4000-8000-000000000001",
+ "title": "Garden plan (imported)",
+ "chat": {
+  "id": "00000000-0000-4000-8000-0000000c1a00",
+  "title": "Garden plan (imported)",
+  "models": [
+   "claude-sonnet-5-5"
+  ],
+  "tags": [
+   "claude-import"
+  ],
+  "timestamp": 1792800000000,
+  "history": {
+   "currentId": "00000000-0000-4000-8000-00000000a005",
+   "messages": {
+    "00000000-0000-4000-8000-00000000c001": {
+     "id": "00000000-0000-4000-8000-00000000c001",
+     "parentId": null,
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000a001"
+     ],
+     "role": "user",
+     "content": "Plan my garden bed.",
+     "timestamp": 1792800000,
+     "models": [
+      "claude-sonnet-5-5"
+     ]
+    },
+    "00000000-0000-4000-8000-00000000a001": {
+     "id": "00000000-0000-4000-8000-00000000a001",
+     "parentId": "00000000-0000-4000-8000-00000000c001",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000c002"
+     ],
+     "role": "assistant",
+     "content": "<details type=\"reasoning\" done=\"true\" duration=\"2\">\n<summary>Thought for 2 seconds</summary>\n> The user wants a garden plan.\n>\n> A markdown document fits.\n</details>\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_search\" name=\"web_search\" arguments=\"&quot;{\\&quot;query\\&quot;: \\&quot;companion planting tomatoes lettuce\\&quot;}&quot;\" result=\"&quot;3 results&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nHere's a plan.\n\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_create\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;create\\&quot;, \\&quot;id\\&quot;: \\&quot;garden_plan\\&quot;, \\&quot;type\\&quot;: \\&quot;text/markdown\\&quot;, \\&quot;title\\&quot;: \\&quot;Garden Plan\\&quot;, \\&quot;language\\&quot;: null, \\&quot;content\\&quot;: \\&quot;# Garden Plan\\\\n\\\\nA weekend plan for a small vegetable bed.\\\\n\\\\n## Beds\\\\n- Tomatoes along the fence\\\\n- Lettuce in the shade\\\\n\\\\n## Steps\\\\n1. Loosen the soil\\\\n2. Add compost\\\\n3. Plant seedlings\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\n\nIt keeps the tomatoes in the sun.",
+     "timestamp": 1792800005,
+     "model": "claude-sonnet-5-5",
+     "done": true
+    },
+    "00000000-0000-4000-8000-00000000c002": {
+     "id": "00000000-0000-4000-8000-00000000c002",
+     "parentId": "00000000-0000-4000-8000-00000000a001",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000a002"
+     ],
+     "role": "user",
+     "content": "Add basil next to the tomatoes.",
+     "timestamp": 1792800060,
+     "models": [
+      "claude-sonnet-5-5"
+     ]
+    },
+    "00000000-0000-4000-8000-00000000a002": {
+     "id": "00000000-0000-4000-8000-00000000a002",
+     "parentId": "00000000-0000-4000-8000-00000000c002",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000c003"
+     ],
+     "role": "assistant",
+     "content": "<details type=\"reasoning\" done=\"true\" duration=\"1\">\n<summary>Thought for 1 seconds</summary>\n> Edit the beds list.\n</details>\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_update\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;update\\&quot;, \\&quot;id\\&quot;: \\&quot;garden_plan\\&quot;, \\&quot;old_str\\&quot;: \\&quot;- Tomatoes along the fence\\&quot;, \\&quot;new_str\\&quot;: \\&quot;- Tomatoes along the fence, basil between them\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nAdded the basil.",
+     "timestamp": 1792800065,
+     "model": "claude-sonnet-5-5",
+     "done": true
+    },
+    "00000000-0000-4000-8000-00000000c003": {
+     "id": "00000000-0000-4000-8000-00000000c003",
+     "parentId": "00000000-0000-4000-8000-00000000a002",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000a003"
+     ],
+     "role": "user",
+     "content": "Also mention peppers.",
+     "timestamp": 1792800120,
+     "models": [
+      "claude-sonnet-5-5"
+     ]
+    },
+    "00000000-0000-4000-8000-00000000a003": {
+     "id": "00000000-0000-4000-8000-00000000a003",
+     "parentId": "00000000-0000-4000-8000-00000000c003",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000c004"
+     ],
+     "role": "assistant",
+     "content": "<details type=\"tool_calls\" done=\"true\" id=\"toolu_update_missing\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;update\\&quot;, \\&quot;id\\&quot;: \\&quot;garden_plan\\&quot;, \\&quot;old_str\\&quot;: \\&quot;- Peppers by the gate\\&quot;, \\&quot;new_str\\&quot;: \\&quot;- Peppers by the gate, two rows\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nDone.",
+     "timestamp": 1792800125,
+     "model": "claude-sonnet-5-5",
+     "done": true
+    },
+    "00000000-0000-4000-8000-00000000c004": {
+     "id": "00000000-0000-4000-8000-00000000c004",
+     "parentId": "00000000-0000-4000-8000-00000000a003",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000a004"
+     ],
+     "role": "user",
+     "content": "Make a watering timer page and a script.",
+     "timestamp": 1792800180,
+     "models": [
+      "claude-sonnet-5-5"
+     ]
+    },
+    "00000000-0000-4000-8000-00000000a004": {
+     "id": "00000000-0000-4000-8000-00000000a004",
+     "parentId": "00000000-0000-4000-8000-00000000c004",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000c005"
+     ],
+     "role": "assistant",
+     "content": "<details type=\"tool_calls\" done=\"true\" id=\"toolu_page\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;create\\&quot;, \\&quot;id\\&quot;: \\&quot;watering_timer\\&quot;, \\&quot;type\\&quot;: \\&quot;text/html\\&quot;, \\&quot;title\\&quot;: \\&quot;Watering Timer\\&quot;, \\&quot;content\\&quot;: \\&quot;&lt;!DOCTYPE html&gt;\\\\n&lt;html&gt;&lt;head&gt;&lt;title&gt;Watering Timer&lt;/title&gt;&lt;/head&gt;\\\\n&lt;body&gt;&lt;h1&gt;Watering Timer&lt;/h1&gt;&lt;button onclick=\\\\\\&quot;this.textContent=&#x27;Started&#x27;\\\\\\&quot;&gt;Start&lt;/button&gt;&lt;/body&gt;&lt;/html&gt;\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_script\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;create\\&quot;, \\&quot;id\\&quot;: \\&quot;water_script\\&quot;, \\&quot;type\\&quot;: \\&quot;application/vnd.ant.code\\&quot;, \\&quot;title\\&quot;: \\&quot;water.py\\&quot;, \\&quot;language\\&quot;: \\&quot;python\\&quot;, \\&quot;content\\&quot;: \\&quot;def water(minutes):\\\\n    for minute in range(minutes):\\\\n        print(f\\\\\\&quot;Watering\\\\u2026 {minute + 1}/{minutes}\\\\\\&quot;)\\\\n\\\\nwater(3)\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nBoth are ready.",
+     "timestamp": 1792800185,
+     "model": "claude-sonnet-5-5",
+     "done": true
+    },
+    "00000000-0000-4000-8000-00000000c005": {
+     "id": "00000000-0000-4000-8000-00000000c005",
+     "parentId": "00000000-0000-4000-8000-00000000a004",
+     "childrenIds": [
+      "00000000-0000-4000-8000-00000000a005"
+     ],
+     "role": "user",
+     "content": "Rewrite the page in German.",
+     "timestamp": 1792800240,
+     "models": [
+      "claude-sonnet-5-5"
+     ]
+    },
+    "00000000-0000-4000-8000-00000000a005": {
+     "id": "00000000-0000-4000-8000-00000000a005",
+     "parentId": "00000000-0000-4000-8000-00000000c005",
+     "childrenIds": [],
+     "role": "assistant",
+     "content": "<details type=\"tool_calls\" done=\"true\" id=\"toolu_rewrite\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;rewrite\\&quot;, \\&quot;id\\&quot;: \\&quot;watering_timer\\&quot;, \\&quot;content\\&quot;: \\&quot;&lt;!DOCTYPE html&gt;\\\\n&lt;html&gt;&lt;head&gt;&lt;title&gt;Bew\\\\u00e4sserungs-Timer&lt;/title&gt;&lt;/head&gt;\\\\n&lt;body&gt;&lt;h1&gt;Bew\\\\u00e4sserungs-Timer&lt;/h1&gt;&lt;button onclick=\\\\\\&quot;this.textContent=&#x27;Losed&#x27;\\\\\\&quot;&gt;Los&lt;/button&gt;&lt;/body&gt;&lt;/html&gt;\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nÜbersetzt.",
+     "timestamp": 1792800245,
+     "model": "claude-sonnet-5-5",
+     "done": true
+    }
+   }
+  },
+  "messages": [
+   {
+    "id": "00000000-0000-4000-8000-00000000c001",
+    "parentId": null,
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000a001"
+    ],
+    "role": "user",
+    "content": "Plan my garden bed.",
+    "timestamp": 1792800000,
+    "models": [
+     "claude-sonnet-5-5"
+    ]
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000a001",
+    "parentId": "00000000-0000-4000-8000-00000000c001",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000c002"
+    ],
+    "role": "assistant",
+    "content": "<details type=\"reasoning\" done=\"true\" duration=\"2\">\n<summary>Thought for 2 seconds</summary>\n> The user wants a garden plan.\n>\n> A markdown document fits.\n</details>\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_search\" name=\"web_search\" arguments=\"&quot;{\\&quot;query\\&quot;: \\&quot;companion planting tomatoes lettuce\\&quot;}&quot;\" result=\"&quot;3 results&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nHere's a plan.\n\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_create\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;create\\&quot;, \\&quot;id\\&quot;: \\&quot;garden_plan\\&quot;, \\&quot;type\\&quot;: \\&quot;text/markdown\\&quot;, \\&quot;title\\&quot;: \\&quot;Garden Plan\\&quot;, \\&quot;language\\&quot;: null, \\&quot;content\\&quot;: \\&quot;# Garden Plan\\\\n\\\\nA weekend plan for a small vegetable bed.\\\\n\\\\n## Beds\\\\n- Tomatoes along the fence\\\\n- Lettuce in the shade\\\\n\\\\n## Steps\\\\n1. Loosen the soil\\\\n2. Add compost\\\\n3. Plant seedlings\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\n\nIt keeps the tomatoes in the sun.",
+    "timestamp": 1792800005,
+    "model": "claude-sonnet-5-5",
+    "done": true
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000c002",
+    "parentId": "00000000-0000-4000-8000-00000000a001",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000a002"
+    ],
+    "role": "user",
+    "content": "Add basil next to the tomatoes.",
+    "timestamp": 1792800060,
+    "models": [
+     "claude-sonnet-5-5"
+    ]
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000a002",
+    "parentId": "00000000-0000-4000-8000-00000000c002",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000c003"
+    ],
+    "role": "assistant",
+    "content": "<details type=\"reasoning\" done=\"true\" duration=\"1\">\n<summary>Thought for 1 seconds</summary>\n> Edit the beds list.\n</details>\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_update\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;update\\&quot;, \\&quot;id\\&quot;: \\&quot;garden_plan\\&quot;, \\&quot;old_str\\&quot;: \\&quot;- Tomatoes along the fence\\&quot;, \\&quot;new_str\\&quot;: \\&quot;- Tomatoes along the fence, basil between them\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nAdded the basil.",
+    "timestamp": 1792800065,
+    "model": "claude-sonnet-5-5",
+    "done": true
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000c003",
+    "parentId": "00000000-0000-4000-8000-00000000a002",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000a003"
+    ],
+    "role": "user",
+    "content": "Also mention peppers.",
+    "timestamp": 1792800120,
+    "models": [
+     "claude-sonnet-5-5"
+    ]
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000a003",
+    "parentId": "00000000-0000-4000-8000-00000000c003",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000c004"
+    ],
+    "role": "assistant",
+    "content": "<details type=\"tool_calls\" done=\"true\" id=\"toolu_update_missing\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;update\\&quot;, \\&quot;id\\&quot;: \\&quot;garden_plan\\&quot;, \\&quot;old_str\\&quot;: \\&quot;- Peppers by the gate\\&quot;, \\&quot;new_str\\&quot;: \\&quot;- Peppers by the gate, two rows\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nDone.",
+    "timestamp": 1792800125,
+    "model": "claude-sonnet-5-5",
+    "done": true
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000c004",
+    "parentId": "00000000-0000-4000-8000-00000000a003",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000a004"
+    ],
+    "role": "user",
+    "content": "Make a watering timer page and a script.",
+    "timestamp": 1792800180,
+    "models": [
+     "claude-sonnet-5-5"
+    ]
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000a004",
+    "parentId": "00000000-0000-4000-8000-00000000c004",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000c005"
+    ],
+    "role": "assistant",
+    "content": "<details type=\"tool_calls\" done=\"true\" id=\"toolu_page\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;create\\&quot;, \\&quot;id\\&quot;: \\&quot;watering_timer\\&quot;, \\&quot;type\\&quot;: \\&quot;text/html\\&quot;, \\&quot;title\\&quot;: \\&quot;Watering Timer\\&quot;, \\&quot;content\\&quot;: \\&quot;&lt;!DOCTYPE html&gt;\\\\n&lt;html&gt;&lt;head&gt;&lt;title&gt;Watering Timer&lt;/title&gt;&lt;/head&gt;\\\\n&lt;body&gt;&lt;h1&gt;Watering Timer&lt;/h1&gt;&lt;button onclick=\\\\\\&quot;this.textContent=&#x27;Started&#x27;\\\\\\&quot;&gt;Start&lt;/button&gt;&lt;/body&gt;&lt;/html&gt;\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\n<details type=\"tool_calls\" done=\"true\" id=\"toolu_script\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;create\\&quot;, \\&quot;id\\&quot;: \\&quot;water_script\\&quot;, \\&quot;type\\&quot;: \\&quot;application/vnd.ant.code\\&quot;, \\&quot;title\\&quot;: \\&quot;water.py\\&quot;, \\&quot;language\\&quot;: \\&quot;python\\&quot;, \\&quot;content\\&quot;: \\&quot;def water(minutes):\\\\n    for minute in range(minutes):\\\\n        print(f\\\\\\&quot;Watering\\\\u2026 {minute + 1}/{minutes}\\\\\\&quot;)\\\\n\\\\nwater(3)\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nBoth are ready.",
+    "timestamp": 1792800185,
+    "model": "claude-sonnet-5-5",
+    "done": true
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000c005",
+    "parentId": "00000000-0000-4000-8000-00000000a004",
+    "childrenIds": [
+     "00000000-0000-4000-8000-00000000a005"
+    ],
+    "role": "user",
+    "content": "Rewrite the page in German.",
+    "timestamp": 1792800240,
+    "models": [
+     "claude-sonnet-5-5"
+    ]
+   },
+   {
+    "id": "00000000-0000-4000-8000-00000000a005",
+    "parentId": "00000000-0000-4000-8000-00000000c005",
+    "childrenIds": [],
+    "role": "assistant",
+    "content": "<details type=\"tool_calls\" done=\"true\" id=\"toolu_rewrite\" name=\"artifacts\" arguments=\"&quot;{\\&quot;command\\&quot;: \\&quot;rewrite\\&quot;, \\&quot;id\\&quot;: \\&quot;watering_timer\\&quot;, \\&quot;content\\&quot;: \\&quot;&lt;!DOCTYPE html&gt;\\\\n&lt;html&gt;&lt;head&gt;&lt;title&gt;Bew\\\\u00e4sserungs-Timer&lt;/title&gt;&lt;/head&gt;\\\\n&lt;body&gt;&lt;h1&gt;Bew\\\\u00e4sserungs-Timer&lt;/h1&gt;&lt;button onclick=\\\\\\&quot;this.textContent=&#x27;Losed&#x27;\\\\\\&quot;&gt;Los&lt;/button&gt;&lt;/body&gt;&lt;/html&gt;\\&quot;}&quot;\" result=\"&quot;OK&quot;\" files=\"\">\n<summary>Tool Executed</summary>\n</details>\nÜbersetzt.",
+    "timestamp": 1792800245,
+    "model": "claude-sonnet-5-5",
+    "done": true
+   }
+  ]
+ },
+ "updated_at": 1792800300,
+ "created_at": 1792800000,
+ "share_id": null,
+ "archived": false,
+ "pinned": false,
+ "meta": {
+  "tags": [
+   "claude-import"
+  ]
+ },
+ "folder_id": null
+}

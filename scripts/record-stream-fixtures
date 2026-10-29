@@ -1,0 +1,908 @@
+#!/usr/bin/env node
+// Records REAL Socket.IO frame logs and REST JSON for chat streaming from the test Server, scrubbed,
+// into Modules/Tests/Fixtures/open-webui-<version>/stream/. Unit tests replay them (ADR 0003).
+//
+// Usage: scripts/record-stream-fixtures [scenario …]
+//   scenarios: plain reasoning stop error resume websearch interleaved askuser branches attachments artifacts sandbox skills sse   (default: all)
+// Needs: Node 22+ (global WebSocket/fetch) and the repo-root .env. Skips cleanly without it.
+//
+// Every Chat it creates starts with "[theseus-test]" and is deleted at the end of its scenario.
+// It only calls own-data endpoints (completions, own chats, stop); never admin endpoints.
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+
+const ROOT = path.resolve(__dirname, '..');
+const ENV_FILE = path.join(ROOT, '.env');
+if (!fs.existsSync(ENV_FILE)) {
+  console.error('record-stream-fixtures: no .env at repo root; skipping.');
+  process.exit(0);
+}
+const env = Object.fromEntries(
+  fs.readFileSync(ENV_FILE, 'utf8').split('\n')
+    .filter((line) => /^[A-Z_]+=/.test(line))
+    .map((line) => {
+      // Same values bash `source` would produce for simple KEY=value / KEY='value' / KEY="value" lines.
+      let value = line.slice(line.indexOf('=') + 1).trim();
+      if (/^'.*'$/.test(value)) value = value.slice(1, -1);
+      else if (/^".*"$/.test(value)) value = value.slice(1, -1).replace(/\\(["\\$`])/g, '$1');
+      return [line.slice(0, line.indexOf('=')), value];
+    }),
+);
+const BASE = (env.THESEUS_OWUI_URL || '').replace(/\/$/, '');
+if (!BASE || !env.THESEUS_OWUI_EMAIL || !env.THESEUS_OWUI_PASSWORD) {
+  console.error('record-stream-fixtures: .env is missing URL/EMAIL/PASSWORD; skipping.');
+  process.exit(0);
+}
+const HOST = BASE.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+const MODEL = process.env.THESEUS_RECORD_MODEL || 'claude-haiku-5-5';
+const PREFIX = '[theseus-test]';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// ---------------------------------------------------------------------------------------------
+// REST
+
+let TOKEN = '';
+let USER = null;
+
+async function rest(method, route, body, { raw = false, allowError = false, headers = {} } = {}) {
+  const response = await fetch(BASE + route, {
+    method,
+    headers: {
+      Accept: 'application/json',
+      ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
+      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...headers,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const text = await response.text();
+  if (!response.ok && !allowError) throw new Error(`${method} ${route} → ${response.status}: ${text.slice(0, 300)}`);
+  if (raw) return { status: response.status, text, headers: Object.fromEntries(response.headers) };
+  try {
+    return { status: response.status, json: JSON.parse(text) };
+  } catch {
+    return { status: response.status, json: null, text };
+  }
+}
+
+// `POST /api/v1/files/` (multipart). Documents are processed for retrieval; images are not.
+async function upload(name, type, bytes, process) {
+  const form = new FormData();
+  form.append('file', new Blob([bytes], { type }), name);
+  const query = process ? '?process=true&process_in_background=true' : '?process=false';
+  const response = await fetch(`${BASE}/api/v1/files/${query}`, { method: 'POST', headers: { Authorization: `Bearer ${TOKEN}` }, body: form });
+  const json = await response.json();
+  if (!response.ok) throw new Error(`upload ${name} → ${response.status}: ${JSON.stringify(json)}`);
+  return json;
+}
+
+// A 4×4 solid orange PNG, built by hand so the recorder needs no image tooling.
+function tinyPNG() {
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc = (buffer) => {
+    let c = 0xffffffff;
+    for (const byte of buffer) c = crcTable[(c ^ byte) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const chunk = (type, data) => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(data.length);
+    const body = Buffer.concat([Buffer.from(type), data]);
+    const sum = Buffer.alloc(4);
+    sum.writeUInt32BE(crc(body));
+    return Buffer.concat([length, body, sum]);
+  };
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(4, 0);
+  header.writeUInt32BE(4, 4);
+  header[8] = 8; // bit depth
+  header[9] = 2; // truecolour RGB
+  const row = Buffer.from([0, ...Array.from({ length: 4 }, () => [0xe8, 0x6a, 0x1c]).flat()]);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', header),
+    chunk('IDAT', require('node:zlib').deflateSync(Buffer.concat([row, row, row, row]))),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
+// ---------------------------------------------------------------------------------------------
+// A minimal, independent Engine.IO v4 / Socket.IO v4 client used only to capture frames.
+
+class FrameRecorder {
+  constructor() {
+    this.start = Date.now();
+    this.frames = [];
+  }
+  log(dir, frame, note) {
+    this.frames.push({ t: Date.now() - this.start, dir, frame, ...(note ? { note } : {}) });
+  }
+  mark(note) {
+    this.frames.push({ t: Date.now() - this.start, dir: 'note', note });
+  }
+}
+
+class Socket {
+  constructor(recorder, label) {
+    this.recorder = recorder;
+    this.label = label;
+    this.sid = null;
+    this.ackID = 0;
+    this.acks = new Map();
+    this.listeners = [];
+    this.closed = false;
+  }
+
+  open() {
+    const url = `${BASE.replace(/^http/, 'ws')}/ws/socket.io/?EIO=4&transport=websocket`;
+    this.recorder.mark(`${this.label}: open ${url}`);
+    this.ws = new WebSocket(url);
+    return new Promise((resolve, reject) => {
+      this.ws.onerror = (event) => reject(new Error(`websocket error ${event.message || ''}`));
+      this.ws.onclose = () => {
+        this.closed = true;
+        this.recorder.mark(`${this.label}: closed`);
+      };
+      this.ws.onmessage = (event) => {
+        const frame = String(event.data);
+        this.recorder.log('in', frame);
+        this.handle(frame, resolve);
+      };
+    });
+  }
+
+  send(frame) {
+    this.recorder.log('out', frame);
+    this.ws.send(frame);
+  }
+
+  handle(frame, onConnected) {
+    const type = frame[0];
+    if (type === '0') {
+      // Engine.IO open → Socket.IO CONNECT with auth.
+      this.send(`40${JSON.stringify({ token: TOKEN })}`);
+    } else if (type === '2') {
+      this.send('3');
+    } else if (type === '4') {
+      const packet = frame.slice(1);
+      if (packet[0] === '0') {
+        this.sid = JSON.parse(packet.slice(1)).sid;
+        onConnected();
+      } else if (packet[0] === '3') {
+        const match = /^3(\d+)(.*)$/s.exec(packet);
+        const resolver = match && this.acks.get(Number(match[1]));
+        if (resolver) {
+          this.acks.delete(Number(match[1]));
+          resolver(JSON.parse(match[2]));
+        }
+      } else if (packet[0] === '2') {
+        const match = /^2(\d*)(\[.*)$/s.exec(packet);
+        if (!match) return;
+        const [name, payload] = JSON.parse(match[2]);
+        const ack = match[1] ? Number(match[1]) : null;
+        for (const listener of this.listeners) listener(name, payload, ack);
+      }
+    }
+  }
+
+  emit(name, payload, withAck = false) {
+    if (!withAck) {
+      this.send(`42${JSON.stringify([name, payload])}`);
+      return Promise.resolve();
+    }
+    const id = this.ackID++;
+    return new Promise((resolve) => {
+      this.acks.set(id, resolve);
+      this.send(`42${id}${JSON.stringify([name, payload])}`);
+    });
+  }
+
+  ack(id, payload) {
+    this.send(`43${id}${JSON.stringify([payload])}`);
+  }
+
+  on(listener) {
+    this.listeners.push(listener);
+  }
+
+  close() {
+    if (this.closed) return;
+    this.send('41');
+    this.ws.close();
+  }
+}
+
+async function joinedSocket(recorder, label = 'socket') {
+  const socket = new Socket(recorder, label);
+  await socket.open();
+  const ack = await socket.emit('user-join', { auth: { token: TOKEN } }, true);
+  recorder.mark(`${label}: joined as ${JSON.stringify(ack)}`);
+  return socket;
+}
+
+// Resolves when an `events` envelope matching `predicate` arrives (or after `timeout` ms).
+function waitFor(socket, predicate, timeout = 180_000) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), timeout);
+    socket.on((name, payload) => {
+      if (name === 'events' && predicate(payload)) {
+        clearTimeout(timer);
+        resolve(payload);
+      }
+    });
+  });
+}
+const isDone = (messageID) => (payload) =>
+  payload.message_id === messageID &&
+  ((payload.data?.type === 'chat:completion' && payload.data?.data?.done === true) ||
+    payload.data?.type === 'chat:tasks:cancel' ||
+    (payload.data?.type === 'chat:message:error'));
+
+// ---------------------------------------------------------------------------------------------
+// Completion requests (the shape the web client sends; docs/research/open-webui-api.md §5.2)
+
+function completionBody({ sessionID, chatID, parentID, prompt, features = {}, params = {}, model = MODEL, userMessageID, assistantID, files, extra = {} }) {
+  const userMessage = {
+    id: userMessageID,
+    parentId: parentID,
+    childrenIds: [],
+    role: 'user',
+    content: prompt,
+    timestamp: Math.floor(Date.now() / 1000),
+    models: [model],
+    ...(files ? { files } : {}),
+  };
+  return {
+    stream: true,
+    model,
+    messages: [],
+    params,
+    tool_servers: [],
+    features: { voice: false, image_generation: false, code_interpreter: false, web_search: false, memory: false, ...features },
+    variables: {},
+    model_item: { id: model },
+    session_id: sessionID,
+    ...(chatID ? { chat_id: chatID } : {}),
+    parent_id: parentID,
+    user_message: userMessage,
+    message_ids: [{ model_id: model, message_id: assistantID, modelIdx: 0 }],
+    background_tasks: { title_generation: true, tags_generation: false, follow_up_generation: true },
+    // Documents also go top-level (RAG); images only ride on the user message.
+    ...(files ? { files: files.filter((file) => !(file.content_type || '').startsWith('image/')) } : {}),
+    // terminal_id (Open Terminal, #132), skill_ids (#140), …
+    ...extra,
+  };
+}
+
+async function send(recorder, options) {
+  const userMessageID = options.userMessageID || crypto.randomUUID();
+  const assistantID = crypto.randomUUID();
+  const body = completionBody({ ...options, userMessageID, assistantID });
+  recorder.mark(`POST /api/chat/completions ${JSON.stringify(body)}`);
+  const result = await rest('POST', '/api/chat/completions', body, { allowError: true });
+  recorder.mark(`completion response ${result.status} ${JSON.stringify(result.json ?? result.text)}`);
+  return { ...result, userMessageID, assistantID, body };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Scenarios. Each returns { frames, files: {name: json} } and cleans up its Chats.
+
+const createdChats = new Set();
+
+const scenarios = {
+  // A new Chat (server-minted id, title generation), then a follow-up turn (chat:messages).
+  async plain(recorder) {
+    const socket = await joinedSocket(recorder);
+    const first = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      prompt: `${PREFIX} In two short sentences, what is a maze? Use one **bold** word.`,
+    });
+    const chatID = first.json.chat_id;
+    createdChats.add(chatID);
+    await waitFor(socket, isDone(first.assistantID));
+    // Give background tasks (title, follow-ups) time to arrive.
+    await waitFor(socket, (p) => p.data?.type === 'chat:message:follow_ups', 30_000);
+    await sleep(1500);
+    const afterFirst = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    recorder.mark('follow-up');
+    const second = await send(recorder, {
+      sessionID: socket.sid,
+      chatID,
+      parentID: first.assistantID,
+      prompt: `${PREFIX} Now give me a markdown list of 3 famous mazes and a fenced swift code block printing "maze".`,
+    });
+    await waitFor(socket, isDone(second.assistantID));
+    await sleep(2500);
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return {
+      files: {
+        'completion.new': first.json,
+        'completion.followup': second.json,
+        'chat.after-first': afterFirst,
+        'chat.final': final,
+        ids: { chatID, first: [first.userMessageID, first.assistantID], second: [second.userMessageID, second.assistantID] },
+      },
+      chatID,
+    };
+  },
+
+  // Visible reasoning (Thinking): provider reasoning via reasoning_effort, else <think> tag detection.
+  async reasoning(recorder) {
+    const socket = await joinedSocket(recorder);
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      params: { reasoning_effort: 'low' },
+      prompt: `${PREFIX} Begin your reply with the literal tag <think>, reason briefly inside it, close it with </think>, then give the answer: what is 17 × 23?`,
+    });
+    const chatID = turn.json.chat_id;
+    createdChats.add(chatID);
+    await waitFor(socket, isDone(turn.assistantID));
+    await sleep(2000);
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return { files: { completion: turn.json, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } }, chatID };
+  },
+
+  // Stop generation after the first deltas: POST /api/tasks/chat/{id}/stop → chat:tasks:cancel.
+  async stop(recorder) {
+    const socket = await joinedSocket(recorder);
+    let deltas = 0;
+    let chatID = null;
+    const stopped = new Promise((resolve) => {
+      socket.on(async (name, payload) => {
+        if (name !== 'events' || payload.data?.data?.type !== 'response.output_text.delta') return;
+        deltas += 1;
+        if (deltas === 6 && payload.chat_id) {
+          recorder.mark('POST stop');
+          const result = await rest('POST', `/api/tasks/chat/${payload.chat_id}/stop`, undefined, { allowError: true });
+          recorder.mark(`stop response ${result.status} ${JSON.stringify(result.json)}`);
+          resolve(result.json);
+        }
+      });
+    });
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      prompt: `${PREFIX} Write a 600-word story about a mouse in a maze.`,
+    });
+    chatID = turn.json.chat_id;
+    createdChats.add(chatID);
+    const stopResponse = await stopped;
+    await waitFor(socket, isDone(turn.assistantID), 30_000);
+    await sleep(2500);
+    const tasks = (await rest('GET', `/api/tasks/chat/${chatID}`)).json;
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return {
+      files: { completion: turn.json, stop: stopResponse, tasks, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } },
+      chatID,
+    };
+  },
+
+  // A provider error surfaced as chat:message:error (an out-of-range parameter the upstream rejects).
+  async error(recorder) {
+    const socket = await joinedSocket(recorder);
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      params: { temperature: 7, max_tokens: -5 },
+      prompt: `${PREFIX} Say hi.`,
+    });
+    const chatID = turn.json?.chat_id;
+    if (chatID) createdChats.add(chatID);
+    await waitFor(socket, isDone(turn.assistantID), 60_000);
+    await sleep(2000);
+    const final = chatID ? (await rest('GET', `/api/v1/chats/${chatID}`)).json : null;
+    // An HTTP-level failure too: an unknown model is rejected before any socket traffic.
+    const unknownModel = await rest('POST', '/api/chat/completions', completionBody({
+      sessionID: socket.sid, parentID: null, prompt: `${PREFIX} hi`, model: 'theseus-no-such-model',
+      userMessageID: crypto.randomUUID(), assistantID: crypto.randomUUID(),
+    }), { allowError: true });
+    recorder.mark(`unknown model → ${unknownModel.status} ${JSON.stringify(unknownModel.json)}`);
+    socket.close();
+    return {
+      files: { completion: turn.json, 'chat.final': final, 'completion.unknown-model': { status: unknownModel.status, body: unknownModel.json }, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } },
+      chatID,
+    };
+  },
+
+  // Leave mid-stream, re-fetch the Chat (Redis overlay, done:false), check tasks, re-join, finish.
+  async resume(recorder) {
+    let socket = await joinedSocket(recorder, 'socket-1');
+    let deltas = 0;
+    const dropped = new Promise((resolve) => {
+      socket.on((name, payload) => {
+        if (name === 'events' && payload.data?.type === 'response:completion' && ++deltas === 10) resolve(payload.chat_id);
+      });
+    });
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      prompt: `${PREFIX} Write a 400-word essay about labyrinths in mythology.`,
+    });
+    const chatID = turn.json.chat_id;
+    createdChats.add(chatID);
+    await dropped;
+    recorder.mark('dropping socket-1 (app backgrounded)');
+    socket.close();
+    await sleep(3000);
+    const overlay = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    const tasks = (await rest('GET', `/api/tasks/chat/${chatID}`)).json;
+    recorder.mark(`tasks ${JSON.stringify(tasks)}`);
+    socket = await joinedSocket(recorder, 'socket-2');
+    await waitFor(socket, isDone(turn.assistantID));
+    await sleep(2500);
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    const tasksAfter = (await rest('GET', `/api/tasks/chat/${chatID}`)).json;
+    socket.close();
+    return {
+      files: { completion: turn.json, 'chat.overlay': overlay, tasks, 'tasks.after': tasksAfter, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } },
+      chatID,
+    };
+  },
+
+  // Web search: status lines (CHAT-08) and Sources (CHAT-07).
+  async websearch(recorder) {
+    const socket = await joinedSocket(recorder);
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      features: { web_search: true },
+      prompt: `${PREFIX} Search the web: what is the latest released version of Open WebUI? Cite your sources.`,
+    });
+    const chatID = turn.json.chat_id;
+    createdChats.add(chatID);
+    await waitFor(socket, isDone(turn.assistantID), 240_000);
+    await sleep(2000);
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return { files: { completion: turn.json, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } }, chatID };
+  },
+
+  // Interleaved reasoning → tools → reasoning → tools → reasoning (#190): a reasoning model at high
+  // effort with web search, so reasoning items sit between tool groups while the Response streams.
+  async interleaved(recorder) {
+    const socket = await joinedSocket(recorder);
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      model: process.env.THESEUS_RECORD_MODEL || 'claude-sonnet-5-5',
+      features: { web_search: true },
+      params: { reasoning_effort: 'high' },
+      prompt: `${PREFIX} Research this in steps, thinking between each step: first search the web for the latest Open WebUI release, then fetch its release notes page, then search for the latest Swift release, and finally give me a two-sentence comparison. Keep the answer short.`,
+    });
+    const chatID = turn.json.chat_id;
+    createdChats.add(chatID);
+    await waitFor(socket, isDone(turn.assistantID), 300_000);
+    await sleep(2000);
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return { files: { completion: turn.json, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } }, chatID };
+  },
+
+  // Clarifying question (CHAT-09): the ask_user builtin tool pauses the Response; answer via /resolve.
+  async askuser(recorder) {
+    const socket = await joinedSocket(recorder);
+    socket.on((name, payload, ack) => {
+      // Live (socket) questions: answer the ack so the server does not wait for its timeout.
+      if (name === 'events' && ack !== null && payload.data?.type === 'request:user_input') {
+        const questions = payload.data.data.questions || [];
+        const answers = Object.fromEntries(questions.map((q) => [q.id, { type: 'option', option_index: 0, label: q.options[0].label, description: q.options[0].description }]));
+        socket.ack(ack, { status: 'answered', answers });
+      }
+    });
+    const paused = waitFor(socket, (p) => p.data?.type === 'chat:completion' &&
+      (p.data.data?.output || []).some((item) => item.name === 'ask_user' && item.status === 'pending'), 120_000);
+    const turn = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      prompt: `${PREFIX} I want to plan a weekend trip. Before answering, you MUST call the ask_user tool with exactly two questions (destination type and budget), each with 2 options. Do not answer before calling it.`,
+    });
+    const chatID = turn.json.chat_id;
+    createdChats.add(chatID);
+    const pausedEvent = await paused;
+    let resolveResult = null;
+    let pending = null;
+    if (pausedEvent) {
+      await sleep(1000);
+      pending = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+      const call = pausedEvent.data.data.output.find((item) => item.name === 'ask_user' && item.status === 'pending');
+      const args = JSON.parse(call.arguments || '{}');
+      const answers = Object.fromEntries((args.questions || []).map((q) => [q.id, { type: 'option', option_index: 0, label: q.options[0].label, description: q.options[0].description }]));
+      recorder.mark(`POST resolve ${JSON.stringify({ call_id: call.call_id, action: 'answer', answers })}`);
+      // The resume request runs the continuation inline, so don't block on it.
+      const resolving = rest('POST', `/api/v1/chats/${chatID}/messages/${turn.assistantID}/resolve`, { call_id: call.call_id, action: 'answer', answers }, { allowError: true });
+      await waitFor(socket, isDone(turn.assistantID), 180_000);
+      resolveResult = (await resolving).json;
+      recorder.mark(`resolve response ${JSON.stringify(resolveResult)}`);
+    } else {
+      await waitFor(socket, isDone(turn.assistantID), 60_000);
+    }
+    await sleep(2000);
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return { files: { completion: turn.json, 'chat.pending': pending, resolve: resolveResult, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } }, chatID };
+  },
+
+  // Attachments (ATT-01/02/04): a processed text document and an unprocessed PNG on one user Message.
+  async attachments(recorder) {
+    const document = await upload(`${PREFIX} atlas.txt`, 'text/plain',
+      Buffer.from('Theseus fixture document. The capital of Atlantis is Poseidonia.\n'), true);
+    let status = null;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      status = (await rest('GET', `/api/v1/files/${document.id}/process/status`)).json;
+      if (status.status !== 'pending') break;
+      await sleep(1000);
+    }
+    const image = await upload(`${PREFIX} swatch.png`, 'image/png', tinyPNG(), false);
+    const fileRef = (file) => ({
+      type: 'file', id: file.id, url: file.id, name: file.meta.name, size: file.meta.size,
+      content_type: file.meta.content_type, collection_name: file.meta.collection_name || '', status: 'uploaded',
+    });
+    try {
+      const socket = await joinedSocket(recorder);
+      const turn = await send(recorder, {
+        sessionID: socket.sid,
+        parentID: null,
+        files: [fileRef(document), fileRef(image)],
+        prompt: `${PREFIX} According to the attached document, what is the capital of Atlantis? Also name the colour of the attached image in one word.`,
+      });
+      const chatID = turn.json.chat_id;
+      createdChats.add(chatID);
+      await waitFor(socket, isDone(turn.assistantID), 120_000);
+      await sleep(2000);
+      const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+      socket.close();
+      return {
+        files: { 'upload.document': document, 'upload.image': image, 'status.document': status, 'chat.final': final, ids: { chatID, turn: [turn.userMessageID, turn.assistantID] } },
+        chatID,
+      };
+    } finally {
+      for (const file of [document, image]) await rest('DELETE', `/api/v1/files/${file.id}`, undefined, { allowError: true });
+    }
+  },
+
+  // Message actions (MSG-03…08): retry as a sibling Branch, edit the first Message (a sibling
+  // root), switch Branches via currentId, rate a Response (feedback + message annotation), share
+  // and unshare the Chat link, and the TTS endpoint without an engine. Feedback is deleted again.
+  async branches(recorder) {
+    const socket = await joinedSocket(recorder);
+    const first = await send(recorder, {
+      sessionID: socket.sid,
+      parentID: null,
+      prompt: `${PREFIX} Name one colour. Answer with one word.`,
+    });
+    const chatID = first.json.chat_id;
+    createdChats.add(chatID);
+    await waitFor(socket, isDone(first.assistantID));
+    await sleep(2000);
+    const afterFirst = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+
+    recorder.mark('regenerate');
+    // Retry: the same user Message id, a new assistant id → a sibling Branch under it.
+    const regenerate = await send(recorder, {
+      sessionID: socket.sid,
+      chatID,
+      parentID: null,
+      userMessageID: first.userMessageID,
+      prompt: `${PREFIX} Name one colour. Answer with one word.`,
+    });
+    await waitFor(socket, isDone(regenerate.assistantID));
+    await sleep(2000);
+    const afterRegenerate = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+
+    recorder.mark('edit');
+    // Edit: a new user Message id with the same parent (none: a sibling root).
+    const edit = await send(recorder, {
+      sessionID: socket.sid,
+      chatID,
+      parentID: null,
+      prompt: `${PREFIX} Name one fruit. Answer with one word.`,
+    });
+    await waitFor(socket, isDone(edit.assistantID));
+    await sleep(2000);
+    const afterEdit = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+
+    // Branch navigation: only currentId changes; the server merges history message by message.
+    const switched = (await rest('POST', `/api/v1/chats/${chatID}`, { chat: { history: { currentId: first.assistantID } } })).json;
+
+    // Feedback: the rating with the Chat snapshot, then the annotation on the message itself.
+    const rated = switched.chat.history.messages[first.assistantID];
+    const feedback = (await rest('POST', '/api/v1/evaluations/feedback', {
+      type: 'rating',
+      data: { rating: 1, model_id: rated.model, comment: `${PREFIX} short and right` },
+      meta: { chat_id: chatID, message_id: first.assistantID, model_id: rated.model },
+      snapshot: { chat: switched },
+    })).json;
+    const annotatedMessage = { ...rated, annotation: { rating: 1, comment: `${PREFIX} short and right` }, feedbackId: feedback.id };
+    const annotated = (await rest('POST', `/api/v1/chats/${chatID}`, { chat: { history: { messages: { [first.assistantID]: annotatedMessage } } } })).json;
+    const feedbackUpdated = (await rest('POST', `/api/v1/evaluations/feedback/${feedback.id}`, {
+      type: 'rating',
+      data: { rating: -1, model_id: rated.model, comment: `${PREFIX} changed my mind` },
+      meta: { chat_id: chatID, message_id: first.assistantID, model_id: rated.model },
+    })).json;
+    const feedbackDeleted = (await rest('DELETE', `/api/v1/evaluations/feedback/${feedback.id}`, undefined, { allowError: true })).json;
+
+    // Share: snapshot link, open it to every signed-in user, read the grants back, then unshare.
+    const share = (await rest('POST', `/api/v1/chats/${chatID}/share`, {})).json;
+    const grants = [{ principal_type: 'user', principal_id: '*', permission: 'read' }];
+    const accessUpdate = (await rest('POST', `/api/v1/chats/shared/${chatID}/access/update`, { access_grants: grants })).json;
+    const access = (await rest('GET', `/api/v1/chats/shared/${chatID}/access`)).json;
+    await rest('POST', `/api/v1/chats/shared/${chatID}/access/update`, { access_grants: [] });
+    const unshare = (await rest('DELETE', `/api/v1/chats/${chatID}/share`)).json;
+
+    // Read aloud without a TTS engine: 404 (the client falls back to on-device speech).
+    const speech = await rest('POST', '/api/v1/audio/speech', { input: 'Hello' }, { allowError: true });
+
+    return {
+      files: {
+        'completion.first': first.json,
+        'completion.regenerate': regenerate.json,
+        'completion.edit': edit.json,
+        'chat.after-first': afterFirst,
+        'chat.after-regenerate': afterRegenerate,
+        'chat.after-edit': afterEdit,
+        'chat.switched': switched,
+        'chat.annotated': annotated,
+        feedback,
+        'feedback.updated': feedbackUpdated,
+        'feedback.deleted': feedbackDeleted,
+        share,
+        'share.access-update': accessUpdate,
+        'share.access': access,
+        unshare,
+        speech: { status: speech.status, body: speech.json ?? speech.text },
+        ids: {
+          chatID,
+          first: [first.userMessageID, first.assistantID],
+          regenerate: [regenerate.userMessageID, regenerate.assistantID],
+          edit: [edit.userMessageID, edit.assistantID],
+          feedbackID: feedback.id,
+          shareID: share.share_id,
+        },
+      },
+      chatID,
+    };
+  },
+
+  // Artifacts (ART-01…03): an HTML page, a revision of it ("make it pink" → Version 2), an SVG and a
+  // Mermaid diagram, each in its own fenced block. Only the final Chat JSON matters to the detector.
+  async artifacts(recorder) {
+    const socket = await joinedSocket(recorder);
+    const prompts = [
+      `${PREFIX} Build a small single-file HTML page titled "Tip Calculator" (use a <title> tag) with an input for the bill, a slider for the tip percentage and the computed total. Inline CSS and JS only, no external resources. Reply with one short sentence, then the whole page in one fenced html code block.`,
+      `${PREFIX} Make it pink: change the colour scheme of the Tip Calculator to pink. Keep the same <title>. Reply with one short sentence, then the whole updated page in one fenced html code block.`,
+      `${PREFIX} Draw a simple SVG icon of a sun (a circle with 8 rays), 120x120, with a <title>Sun icon</title>. Reply with one sentence and the SVG in a fenced svg code block.`,
+      `${PREFIX} Show the steps of making tea as a mermaid flowchart (graph TD, 5 nodes) in a fenced mermaid code block, after one short sentence.`,
+    ];
+    let chatID = null;
+    let parentID = null;
+    const turns = [];
+    for (const prompt of prompts) {
+      const turn = await send(recorder, { sessionID: socket.sid, chatID, parentID, prompt });
+      chatID = chatID || turn.json.chat_id;
+      createdChats.add(chatID);
+      await waitFor(socket, isDone(turn.assistantID), 240_000);
+      await sleep(2000);
+      parentID = turn.assistantID;
+      turns.push([turn.userMessageID, turn.assistantID]);
+    }
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    return { files: { 'chat.final': final, ids: { chatID, turns } }, chatID };
+  },
+
+  // Open Terminal (epic #139): the model's sandbox via terminal_id. Harmless commands only, inside a
+  // theseus-test folder that is deleted at the end. Then the file browser's proxy calls (#135).
+  async sandbox(recorder) {
+    const socket = await joinedSocket(recorder);
+    socket.on((name, payload, ack) => {
+      // A native client has no interactive shell open: the server then drops the user-shell tools.
+      if (name === 'events' && ack !== null && payload.data?.type === 'request:terminal:state') socket.ack(ack, { connected: false });
+    });
+    const terminals = (await rest('GET', '/api/v1/terminals/')).json;
+    const terminalID = terminals[0]?.id;
+    if (!terminalID) throw new Error('the Server lists no terminal');
+    // The terminal server's id, name and URL name the deployment (host, compose service): placeholders.
+    for (const terminal of terminals) {
+      extraReplacements.push([terminal.url, 'http://terminal.example:8000'], [terminal.name, 'Demo sandbox'], [terminal.id, 'demo-sandbox']);
+    }
+    const prompts = [
+      `${PREFIX} Use the sandbox. Create a folder named theseus-test and write the file theseus-test/hello.txt containing exactly "hi". Then make three separate run_command calls, one per command, never chained: \`ls -la theseus-test\`, then \`python3 -c 'print(2+2)'\`, then \`ls theseus-test/missing.txt\` (it fails with exit code 2, that's expected). Finally show me hello.txt with display_file. Reply in one sentence.`,
+      `${PREFIX} In the sandbox, start \`for i in 1 2 3; do echo tick $i; sleep 2; done\` with run_command and wait=0, then poll it with get_process_status until it is done. Then write theseus-test/planets.csv with the columns name,moons and three planets, rename the column moons to moon_count with replace_file_content, and show me the file with display_file. Reply in one sentence.`,
+    ];
+    let chatID = null;
+    let parentID = null;
+    const turns = [];
+    for (const prompt of prompts) {
+      const turn = await send(recorder, { sessionID: socket.sid, chatID, parentID, prompt, extra: { terminal_id: terminalID } });
+      chatID = chatID || turn.json.chat_id;
+      createdChats.add(chatID);
+      await waitFor(socket, isDone(turn.assistantID), 300_000);
+      await sleep(2000);
+      parentID = turn.assistantID;
+      turns.push([turn.userMessageID, turn.assistantID]);
+    }
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    // The file browser (OT-04) and downloads (OT-03) go through the Server's proxy, scoped by chat.
+    const proxy = `/api/v1/terminals/${terminalID}`;
+    const headers = { 'X-Session-Id': chatID };
+    const cwd = (await rest('GET', `${proxy}/files/cwd`, undefined, { headers })).json;
+    const folder = `${cwd.cwd.replace(/\/$/, '')}/theseus-test`;
+    const list = (await rest('GET', `${proxy}/files/list?directory=${encodeURIComponent(folder)}`, undefined, { headers })).json;
+    const view = await rest('GET', `${proxy}/files/view?path=${encodeURIComponent(`${folder}/hello.txt`)}`, undefined, { headers, raw: true });
+    const missing = await rest('GET', `${proxy}/files/view?path=${encodeURIComponent(`${folder}/missing.txt`)}`, undefined, { headers, raw: true, allowError: true });
+    const matches = (await rest('GET', `${proxy}/files/matches?query=planets&path=${encodeURIComponent(folder)}`, undefined, { headers, allowError: true })).json;
+    const removed = await rest('DELETE', `${proxy}/files/delete?path=${encodeURIComponent(folder)}`, undefined, { headers, allowError: true });
+    recorder.mark(`removed ${folder}: ${removed.status}`);
+    return {
+      files: {
+        terminals,
+        'chat.final': final,
+        'files.cwd': cwd,
+        'files.list': list,
+        'files.view': { status: view.status, contentType: view.headers['content-type'], body: view.text },
+        'files.view.missing': { status: missing.status, body: missing.json ?? missing.text },
+        'files.matches': matches,
+        ids: { chatID, turns, terminalID },
+      },
+      chatID,
+    };
+  },
+
+  // Skills (#140): the Server's Skills, a Response that reads one (view_skill), one that delegates to a
+  // sub-agent (delegate_task), and a turn with a picked Skill (skill_ids).
+  async skills(recorder) {
+    const socket = await joinedSocket(recorder);
+    const list = (await rest('GET', '/api/v1/skills/')).json;
+    const prompts = [
+      [`${PREFIX} Call the view_skill tool to read the xlsx skill, then tell me in one sentence what it is for.`, {}],
+      [`${PREFIX} Delegate this to a sub-agent with delegate_task: "What is 6 times 7? Answer with the number only." Then tell me its answer in one sentence.`, {}],
+      [`${PREFIX} In one sentence: should I double-check facts before acting on them?`, { skill_ids: ['discernment-nudge'] }],
+    ];
+    let chatID = null;
+    let parentID = null;
+    const turns = [];
+    for (const [prompt, extra] of prompts) {
+      const turn = await send(recorder, { sessionID: socket.sid, chatID, parentID, prompt, extra });
+      chatID = chatID || turn.json.chat_id;
+      createdChats.add(chatID);
+      await waitFor(socket, isDone(turn.assistantID), 240_000);
+      await sleep(2000);
+      parentID = turn.assistantID;
+      turns.push([turn.userMessageID, turn.assistantID]);
+    }
+    const final = (await rest('GET', `/api/v1/chats/${chatID}`)).json;
+    socket.close();
+    // Skill texts belong to their authors: keep ids and names, and never store a Skill's body.
+    // The frames would repeat the view_skill result, so they're dropped; the stored Chat suffices.
+    recorder.frames.length = 0;
+    const skills = list.map(({ id, name, is_active, meta, updated_at, created_at }) => ({
+      id, name, description: `What the ${name} skill does.`, is_active, meta, updated_at, created_at,
+    }));
+    const calls = new Map();
+    for (const message of [...Object.values(final.chat.history.messages), ...(final.chat.messages || [])]) {
+      for (const item of message.output || []) {
+        if (item.type === 'function_call') calls.set(item.call_id, item);
+        if (item.type === 'function_call_output' && calls.get(item.call_id)?.name === 'view_skill') {
+          const id = JSON.parse(calls.get(item.call_id).arguments || '{}').id;
+          item.output = [{ type: 'input_text', text: JSON.stringify({ id, name: id, content: '(skill text omitted)' }) }];
+        }
+      }
+    }
+    return { files: { list: skills, 'chat.final': final, ids: { chatID, turns } }, chatID };
+  },
+
+  // Stateless SSE (no chat_id, no session_id): the fallback path for API-key sessions.
+  async sse(recorder) {
+    const body = {
+      stream: true,
+      model: MODEL,
+      messages: [{ role: 'user', content: `${PREFIX} In one sentence, what is Theseus's mouse?` }],
+    };
+    recorder.mark(`POST /api/chat/completions (SSE) ${JSON.stringify(body)}`);
+    const result = await rest('POST', '/api/chat/completions', body, { raw: true });
+    const reasoningBody = { ...body, messages: [{ role: 'user', content: `${PREFIX} Think inside <think></think> tags, then say the result of 6 × 7.` }], reasoning_effort: 'low' };
+    const reasoning = await rest('POST', '/api/chat/completions', reasoningBody, { raw: true });
+    return { files: {}, text: { 'sse.plain.txt': result.text, 'sse.reasoning.txt': reasoning.text }, chatID: null };
+  },
+};
+
+// ---------------------------------------------------------------------------------------------
+// Scrubbing
+
+// Deployment-specific values a scenario found (terminal servers), replaced like the token and host.
+const extraReplacements = [];
+
+function scrubber(chatIDs) {
+  const replacements = [
+    ...extraReplacements,
+    [TOKEN, 'eyJhbGciOiJIUzI1NiJ9.c2NydWJiZWQ.c2NydWJiZWQ'],
+    [USER.id, '00000000-0000-4000-8000-000000000001'],
+    [env.THESEUS_OWUI_EMAIL, 'user@example.com'],
+    [HOST, 'owui.example.com'],
+  ];
+  if (USER.name && USER.name.length > 2) replacements.push([USER.name, 'Test User']);
+  chatIDs.filter(Boolean).forEach((id, index) => {
+    replacements.push([id, `00000000-0000-4000-8000-0000000c${String(index + 1).padStart(4, '0')}`]);
+  });
+  return (text) => {
+    let result = text;
+    for (const [from, to] of replacements) if (from) result = result.split(from).join(to);
+    return result.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, 'user@example.com');
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+
+async function main() {
+  const wanted = process.argv.slice(2);
+  const selected = wanted.length ? wanted : Object.keys(scenarios);
+  const signin = await rest('POST', '/api/v1/auths/signin', { email: env.THESEUS_OWUI_EMAIL, password: env.THESEUS_OWUI_PASSWORD });
+  TOKEN = signin.json.token;
+  USER = signin.json;
+  if (!TOKEN) throw new Error('sign-in returned no token (MFA?)');
+  const version = (await rest('GET', '/api/version')).json.version;
+  const out = path.join(ROOT, 'Modules/Tests/Fixtures', `open-webui-${version}`, 'stream');
+  fs.mkdirSync(out, { recursive: true });
+
+  try {
+    for (const name of selected) {
+      const scenario = scenarios[name];
+      if (!scenario) throw new Error(`unknown scenario ${name}`);
+      console.log(`record-stream-fixtures: ${name} …`);
+      const recorder = new FrameRecorder();
+      let result;
+      try {
+        result = await scenario(recorder);
+      } finally {
+        for (const chatID of createdChats) {
+          await rest('DELETE', `/api/v1/chats/${chatID}`, undefined, { allowError: true });
+        }
+      }
+      const scrub = scrubber([...createdChats]);
+      createdChats.clear();
+      if (recorder.frames.length) {
+        const lines = recorder.frames.map((frame) => scrub(JSON.stringify(frame))).join('\n') + '\n';
+        fs.writeFileSync(path.join(out, `${name}.frames.jsonl`), lines);
+      }
+      for (const [file, json] of Object.entries(result.files || {})) {
+        fs.writeFileSync(path.join(out, `${name}.${file}.json`), scrub(JSON.stringify(json, null, 2)) + '\n');
+      }
+      for (const [file, text] of Object.entries(result.text || {})) {
+        fs.writeFileSync(path.join(out, file), scrub(text));
+      }
+    }
+  } finally {
+    await rest('POST', '/api/v1/auths/signout', undefined, { allowError: true });
+  }
+
+  // Safety net: refuse to leave anything identifying behind.
+  const needles = [env.THESEUS_OWUI_EMAIL, TOKEN, USER.id, HOST].filter(Boolean);
+  for (const file of fs.readdirSync(out)) {
+    const text = fs.readFileSync(path.join(out, file), 'utf8');
+    if (needles.some((needle) => text.includes(needle))) {
+      fs.rmSync(path.join(out, file));
+      throw new Error(`scrubbing failed for ${file}; removed it`);
+    }
+  }
+  // Server- and provider-generated ids (messages, files, tool calls, …) become placeholders everywhere.
+  require('node:child_process').execFileSync(path.join(ROOT, 'scripts/fixtures/scrub_ids.py'), { stdio: 'inherit' });
+  console.log(`record-stream-fixtures: wrote ${path.relative(ROOT, out)}`);
+}
+
+main().then(() => process.exit(0)).catch((error) => {
+  console.error(`record-stream-fixtures: ${error.stack || error}`);
+  process.exit(1);
+});

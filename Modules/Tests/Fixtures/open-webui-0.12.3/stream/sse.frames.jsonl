@@ -1,0 +1,1 @@
+{"t":0,"dir":"note","note":"POST /api/chat/completions (SSE) {\"stream\":true,\"model\":\"claude-haiku-5-5\",\"messages\":[{\"role\":\"user\",\"content\":\"[theseus-test] In one sentence, what is Theseus's mouse?\"}]}"}

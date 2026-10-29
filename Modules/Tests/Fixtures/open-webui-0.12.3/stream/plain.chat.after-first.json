@@ -1,0 +1,114 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Maze Definition",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Maze Definition",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0051",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0052": {
+          "id": "00000000-0000-4000-8000-0000000e0052",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0051"
+          ],
+          "role": "user",
+          "content": "[theseus-test] In two short sentences, what is a maze? Use one **bold** word.",
+          "timestamp": 1792780239,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0051": {
+          "id": "00000000-0000-4000-8000-0000000e0051",
+          "parentId": "00000000-0000-4000-8000-0000000e0052",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "A maze is a branching puzzle of paths and walls designed to challenge whoever tries to find the way through. It often has a single **entrance** and exit, with many dead ends that make navigating it difficult.",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780239,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0053"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000028",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "A maze is a branching puzzle of paths and walls designed to challenge whoever tries to find the way through. It often has a single **entrance** and exit, with many dead ends that make navigating it difficult."
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12780,
+            "completion_tokens": 66,
+            "total_tokens": 25692,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cached_creation_tokens": 25556,
+              "cache_write_tokens": 25556
+            },
+            "input_tokens": 25560,
+            "output_tokens": 132
+          },
+          "followUps": [
+            "Now define a labyrinth in two short sentences, with one **bold** word.",
+            "What's the difference between a maze and a labyrinth?",
+            "Tell me how Theseus used a thread to escape the Minotaur's labyrinth.",
+            "Give me the same two-sentence format for a cul-de-sac, with one **bold** word."
+          ]
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] In two short sentences, what is a maze? Use one **bold** word.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780239244,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780240,
+  "created_at": 1792780239,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0051",
+  "context_usage": {
+    "tokens": 12846,
+    "estimated_tokens": 12846,
+    "threshold": 80000,
+    "percent": 16,
+    "source": "estimated"
+  }
+}

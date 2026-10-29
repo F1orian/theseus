@@ -1,0 +1,146 @@
+[
+  {
+    "id": "deep-research",
+    "name": "deep-research",
+    "description": "What the deep-research skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792768702,
+    "created_at": 1792760689
+  },
+  {
+    "id": "xlsx",
+    "name": "xlsx",
+    "description": "What the xlsx skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "webapp-testing",
+    "name": "webapp-testing",
+    "description": "What the webapp-testing skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "web-artifacts-builder",
+    "name": "web-artifacts-builder",
+    "description": "What the web-artifacts-builder skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "skill-creator",
+    "name": "skill-creator",
+    "description": "What the skill-creator skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "pptx",
+    "name": "pptx",
+    "description": "What the pptx skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "pdf",
+    "name": "pdf",
+    "description": "What the pdf skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "frontend-design",
+    "name": "frontend-design",
+    "description": "What the frontend-design skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "docx",
+    "name": "docx",
+    "description": "What the docx skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "doc-coauthoring",
+    "name": "doc-coauthoring",
+    "description": "What the doc-coauthoring skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "discernment-nudge",
+    "name": "discernment-nudge",
+    "description": "What the discernment-nudge skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  },
+  {
+    "id": "canvas-design",
+    "name": "canvas-design",
+    "description": "What the canvas-design skill does.",
+    "is_active": true,
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "updated_at": 1792699002,
+    "created_at": 1792699002
+  }
+]

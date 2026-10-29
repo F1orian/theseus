@@ -1,0 +1,71 @@
+{
+  "groups": [
+    {
+      "name": "Still life",
+      "layers": [
+        {
+          "name": "Paws",
+          "image-name": "paws.png",
+          "glass": false
+        },
+        {
+          "name": "Food",
+          "image-name": "still-life.png",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "none",
+        "opacity": 0
+      },
+      "specular": false,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "name": "Theseus",
+      "layers": [
+        {
+          "name": "Mouse",
+          "image-name": "theseus.png",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "specular": true,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "name": "Painting",
+      "layers": [
+        {
+          "name": "Painting",
+          "image-name": "painting.png",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "none",
+        "opacity": 0
+      },
+      "specular": false,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "iOS"
+    ]
+  }
+}

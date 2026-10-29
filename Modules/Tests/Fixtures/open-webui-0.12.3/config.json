@@ -1,0 +1,189 @@
+{
+  "status": true,
+  "name": "Open WebUI",
+  "version": "0.12.3",
+  "default_locale": "",
+  "i18n": {},
+  "oauth": {
+    "providers": {},
+    "auto_redirect": false
+  },
+  "features": {
+    "slim": false,
+    "auth": true,
+    "auth_trusted_header": false,
+    "enable_signup_password_confirmation": false,
+    "enable_ldap": false,
+    "enable_signup": false,
+    "enable_login_form": true,
+    "enable_websocket": true,
+    "enable_api_keys": false,
+    "enable_password_change_form": true,
+    "enable_version_update_check": false,
+    "enable_pyodide_file_persistence": false,
+    "enable_public_active_users_count": true,
+    "enable_easter_eggs": true,
+    "enable_direct_connections": false,
+    "enable_direct_integrations": true,
+    "enable_plugins": true,
+    "enable_tools": true,
+    "enable_functions": true,
+    "enable_tool_servers": true,
+    "enable_folders": true,
+    "folder_max_file_count": "",
+    "enable_channels": true,
+    "enable_encrypted_channels": true,
+    "enable_apps": true,
+    "enable_calendar": true,
+    "enable_automations": true,
+    "enable_notes": true,
+    "enable_context_compaction": true,
+    "enable_tool_permissions": false,
+    "enable_web_search": true,
+    "enable_web_search_confirmation": false,
+    "web_search_confirmation_content": "Your query will be sent to the configured web search provider.",
+    "enable_code_execution": true,
+    "enable_code_interpreter": true,
+    "enable_image_generation": false,
+    "enable_autocomplete_generation": false,
+    "enable_community_sharing": false,
+    "enable_message_rating": true,
+    "enable_user_webhooks": false,
+    "enable_user_status": false,
+    "enable_admin_export": true,
+    "enable_admin_chat_access": true,
+    "enable_admin_analytics": true,
+    "enable_google_drive_integration": false,
+    "enable_onedrive_integration": false,
+    "enable_memories": true
+  },
+  "default_models": "model",
+  "default_pinned_models": null,
+  "default_prompt_suggestions": null,
+  "default_prompt_suggestions_i18n": {},
+  "code": {
+    "engine": "pyodide",
+    "interpreter_engine": "pyodide"
+  },
+  "audio": {
+    "realtime": {
+      "enabled": false,
+      "model": "gpt-realtime-2.1-mini",
+      "voice": "marin"
+    },
+    "tts": {
+      "engine": "",
+      "voice": "",
+      "split_on": "punctuation"
+    },
+    "stt": {
+      "engine": ""
+    }
+  },
+  "file": {
+    "max_size": null,
+    "max_count": null,
+    "image_compression": {
+      "width": null,
+      "height": null
+    }
+  },
+  "permissions": {
+    "workspace": {
+      "models": false,
+      "knowledge": false,
+      "prompts": false,
+      "tools": false,
+      "skills": false,
+      "models_import": false,
+      "models_export": false,
+      "prompts_import": false,
+      "prompts_export": false,
+      "tools_import": false,
+      "tools_export": false,
+      "skills_import": false,
+      "skills_export": false
+    },
+    "sharing": {
+      "models": false,
+      "public_models": false,
+      "knowledge": false,
+      "public_knowledge": false,
+      "prompts": false,
+      "public_prompts": false,
+      "tools": false,
+      "public_tools": false,
+      "skills": false,
+      "public_skills": false,
+      "notes": false,
+      "public_notes": false,
+      "folders": false,
+      "public_chats": false,
+      "open_chats": false,
+      "public_calendars": false
+    },
+    "access_grants": {
+      "allow_users": true,
+      "allow_groups": true
+    },
+    "chat": {
+      "controls": true,
+      "valves": true,
+      "system_prompt": true,
+      "params": true,
+      "file_upload": true,
+      "web_upload": true,
+      "delete": true,
+      "delete_message": true,
+      "continue_response": true,
+      "regenerate_response": true,
+      "rate_response": true,
+      "edit": true,
+      "share": true,
+      "export": true,
+      "import": true,
+      "stt": true,
+      "tts": true,
+      "call": true,
+      "multiple_models": true,
+      "temporary": true,
+      "temporary_enforced": false
+    },
+    "features": {
+      "api_keys": false,
+      "notes": true,
+      "folders": true,
+      "channels": true,
+      "encrypted_channels": false,
+      "direct_tool_servers": false,
+      "web_search": true,
+      "image_generation": true,
+      "code_interpreter": true,
+      "memories": true,
+      "automations": false,
+      "calendar": true,
+      "webhooks": false
+    },
+    "settings": {
+      "interface": true
+    }
+  },
+  "google_drive": {
+    "client_id": "",
+    "api_key": ""
+  },
+  "onedrive": {
+    "client_id_personal": "",
+    "client_id_business": "",
+    "sharepoint_url": "",
+    "sharepoint_tenant_id": ""
+  },
+  "ui": {
+    "default_interface_settings": {},
+    "pending_user_overlay_title": "",
+    "pending_user_overlay_content": "",
+    "response_watermark": "",
+    "iframe_csp": ""
+  },
+  "license_metadata": null
+}

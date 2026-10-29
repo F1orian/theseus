@@ -1,0 +1,102 @@
+{
+  "id": "00000000-0000-4000-8000-000000000001",
+  "name": "Test User",
+  "role": "admin",
+  "email": "user@example.com",
+  "profile_image_url": "/api/v1/users/00000000-0000-4000-8000-000000000001/profile/image",
+  "token": "eyJhbGciOiJIUzI1NiJ9.c2NydWJiZWQ.c2NydWJiZWQ",
+  "token_type": "Bearer",
+  "expires_at": 1795196776,
+  "permissions": {
+    "workspace": {
+      "models": false,
+      "knowledge": false,
+      "prompts": false,
+      "tools": false,
+      "skills": false,
+      "models_import": false,
+      "models_export": false,
+      "prompts_import": false,
+      "prompts_export": false,
+      "tools_import": false,
+      "tools_export": false,
+      "skills_import": false,
+      "skills_export": false
+    },
+    "sharing": {
+      "models": false,
+      "public_models": false,
+      "knowledge": false,
+      "public_knowledge": false,
+      "prompts": false,
+      "public_prompts": false,
+      "tools": false,
+      "public_tools": false,
+      "skills": false,
+      "public_skills": false,
+      "notes": false,
+      "public_notes": false,
+      "folders": false,
+      "public_chats": false,
+      "open_chats": false,
+      "public_calendars": false
+    },
+    "access_grants": {
+      "allow_users": true,
+      "allow_groups": true
+    },
+    "chat": {
+      "controls": true,
+      "valves": true,
+      "system_prompt": true,
+      "params": true,
+      "file_upload": true,
+      "web_upload": true,
+      "delete": true,
+      "delete_message": true,
+      "continue_response": true,
+      "regenerate_response": true,
+      "rate_response": true,
+      "edit": true,
+      "share": true,
+      "export": true,
+      "import": true,
+      "stt": true,
+      "tts": true,
+      "call": true,
+      "multiple_models": true,
+      "temporary": true,
+      "temporary_enforced": false
+    },
+    "features": {
+      "api_keys": false,
+      "notes": true,
+      "folders": true,
+      "channels": true,
+      "encrypted_channels": false,
+      "direct_tool_servers": false,
+      "web_search": true,
+      "image_generation": true,
+      "code_interpreter": true,
+      "memories": true,
+      "automations": false,
+      "calendar": true,
+      "webhooks": false
+    },
+    "settings": {
+      "interface": true
+    }
+  },
+  "recovery_codes": [
+    "3f9a-1c2e",
+    "7b41-d0a8",
+    "e2c5-9f13",
+    "0d6b-a4e7",
+    "c8f2-5b91",
+    "94ae-2d3c",
+    "1b7f-e6a0",
+    "a5d3-08c4",
+    "6e19-f7b2",
+    "d2a8-3c5f"
+  ]
+}

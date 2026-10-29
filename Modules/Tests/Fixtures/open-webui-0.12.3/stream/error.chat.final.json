@@ -1,0 +1,85 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Greeting Request",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Greeting Request",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0045",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0046": {
+          "id": "00000000-0000-4000-8000-0000000e0046",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0045"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Say hi.",
+          "timestamp": 1792780315,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0045": {
+          "id": "00000000-0000-4000-8000-0000000e0045",
+          "parentId": "00000000-0000-4000-8000-0000000e0046",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780315,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0047"
+          },
+          "error": {
+            "content": "max_tokens: must be greater than or equal to 0"
+          }
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] Say hi.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780315327,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780316,
+  "created_at": 1792780315,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0045",
+  "context_usage": {
+    "tokens": 13,
+    "estimated_tokens": 13,
+    "threshold": 80000,
+    "percent": 0,
+    "source": "estimated"
+  }
+}

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Copies the named screenshots of a walkthrough result bundle to <out>/<name>.png.
+# Usage: scripts/export-walkthrough-screens [build/Walkthrough.xcresult] [out dir, default .scratch/chat-streaming]
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+RESULT="${1:-$ROOT/build/Walkthrough.xcresult}"
+OUT="${2:-$ROOT/.scratch/chat-streaming}"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+mkdir -p "$OUT"
+xcrun xcresulttool export attachments --path "$RESULT" --output-path "$TMP" >/dev/null
+python3 - "$TMP" "$OUT" <<'PY'
+import json, os, re, shutil, sys
+tmp, out = sys.argv[1], sys.argv[2]
+for test in json.load(open(os.path.join(tmp, "manifest.json"))):
+    for item in test["attachments"]:
+        name = item["suggestedHumanReadableName"]
+        match = re.match(r"(\d\d-[a-z0-9-]+)", name)
+        if match:
+            target = os.path.join(out, match.group(1) + ".png")
+            shutil.copy(os.path.join(tmp, item["exportedFileName"]), target)
+            print(target)
+        elif item.get("isAssociatedWithFailure") or name.startswith("UI Snapshot"):
+            shutil.copy(os.path.join(tmp, item["exportedFileName"]), os.path.join(out, "failure-" + item["exportedFileName"][:8] + ".png"))
+PY

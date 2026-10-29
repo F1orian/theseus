@@ -1,0 +1,12 @@
+{
+  "id": "00000000-0000-4000-8000-000000000301",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "type": "user",
+  "path": "preferences/units",
+  "content": "[theseus-test] Prefers metric units and 24-hour time",
+  "meta": {
+    "created_by": "manual"
+  },
+  "updated_at": 1792789049,
+  "created_at": 1792789049
+}

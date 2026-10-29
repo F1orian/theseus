@@ -1,0 +1,26 @@
+{
+  "id": "00000000-0000-4000-8000-000000000200",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "[theseus-test] renamed",
+  "chat": {
+    "title": "[theseus-test] renamed",
+    "models": [],
+    "history": {
+      "messages": {},
+      "currentId": null
+    },
+    "messages": []
+  },
+  "updated_at": 1792780203,
+  "created_at": 1792780203,
+  "share_id": null,
+  "archived": false,
+  "pinned": true,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": null,
+  "context_usage": null
+}

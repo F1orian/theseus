@@ -1,0 +1,39 @@
+{
+  "identifier" : "5E8A3C21",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : true,
+      "internalID" : "6740000001",
+      "localizations" : [
+        {
+          "description" : "Unlimited code execution, Skills, Voice mode and more.",
+          "displayName" : "Theseus Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "dev.unrush.theseus.pro",
+      "referenceName" : "Theseus Pro",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

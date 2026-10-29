@@ -1,0 +1,26 @@
+{
+  "id": "00000000-0000-4000-8000-000000000510",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "[theseus-test] project chat",
+  "chat": {
+    "title": "[theseus-test] project chat",
+    "models": [],
+    "history": {
+      "messages": {},
+      "currentId": null
+    },
+    "messages": []
+  },
+  "updated_at": 1792789040,
+  "created_at": 1792789040,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": "00000000-0000-4000-8000-000000000500",
+  "tasks": null,
+  "summary": null,
+  "current_message_id": null,
+  "context_usage": null
+}

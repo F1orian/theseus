@@ -1,0 +1,247 @@
+# XcodeGen spec (ADR 0002). Generate with `scripts/bootstrap.sh` or `xcodegen generate`.
+# The .xcodeproj is gitignored: edit this file, never the generated project.
+name: Theseus
+
+options:
+  bundleIdPrefix: dev.unrush
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Screen recordings: a Server alias shown instead of the Server's host, URL and name everywhere in
+    # the UI (ServerDisplay in ChatDomain). Empty = off. The launch video builds with
+    # `THESEUS_SERVER_ALIAS=chat.example.com` (marketing/launch-video/record/build.sh).
+    THESEUS_SERVER_ALIAS: ""
+    # Screenshots: neutral model names instead of the server's (`id=Name;…`, ServerDisplay.modelNames).
+    THESEUS_MODEL_NAMES: ""
+
+packages:
+  Modules:
+    path: Modules
+
+targets:
+  Theseus:
+    type: application
+    platform: iOS
+    sources:
+      - App/Sources
+      # ADR 0173: referenced by the scheme for local StoreKit testing, never copied into the app.
+      - path: App/Theseus.storekit
+        buildPhase: none
+      # BRAND-02 (ADR 0141): 24 layered Icon Composer packages, compiled by actool into Assets.car.
+      # Each `.icon` is a single icon document, not a folder of loose PNGs.
+      - path: App/Icons
+        buildPhase: resources
+      # The privacy manifest (required-reason APIs, no tracking, no collected data).
+      - path: App/Resources
+        buildPhase: resources
+    dependencies:
+      - package: Modules
+        product: AppFeature
+      - package: Modules
+        product: AppIntentsFeature
+      # ADR 0173: `-theseus-pro` launches (LaunchConfiguration).
+      - package: Modules
+        product: Entitlements
+      # PLAT-01 / PLAT-04: embedded extensions (ADR 0100).
+      - target: TheseusWidgets
+      - target: TheseusShare
+    # Release builds (archives) refuse placeholder support/privacy links (docs/release/checklist.md).
+    preBuildScripts:
+      - name: Release preflight
+        script: |
+          if [ "$CONFIGURATION" = "Release" ]; then
+            "$SRCROOT/scripts/release/preflight" --build-phase
+          fi
+        inputFiles:
+          - $(SRCROOT)/scripts/release/preflight
+          - $(SRCROOT)/Modules/Sources/DesignSystem/PublicLinks.swift
+          - $(SRCROOT)/site/index.html
+          - $(SRCROOT)/site/privacy/index.html
+          - $(SRCROOT)/site/support/index.html
+        outputFiles: []
+        basedOnDependencyAnalysis: false
+    entitlements:
+      path: App/Theseus.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.unrush.theseus
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Theseus
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        TheseusServerAlias: $(THESEUS_SERVER_ALIAS)
+        TheseusModelNames: $(THESEUS_MODEL_NAMES)
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        # Self-hosted servers are often reached by LAN IP / .local name.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        ITSAppUsesNonExemptEncryption: false
+        # ATT-03: the Camera tile in Add to Chat.
+        NSCameraUsageDescription: Theseus uses the camera to attach photos to your messages.
+        # CONN-07: Settings › Permissions › Location (shared as {{USER_LOCATION}} only when allowed).
+        NSLocationWhenInUseUsageDescription: Theseus shares your approximate location with the model only when you allow it in Settings › Permissions.
+        # VOICE-01…05: Dictation and Voice mode (ADR 0080).
+        NSMicrophoneUsageDescription: Theseus uses the microphone when you dictate a message or talk in Voice mode.
+        NSSpeechRecognitionUsageDescription: Theseus turns your speech into text on this device when you dictate or talk in Voice mode.
+        # PLAT-03: theseus:// deep links (DeepLink in AppIntentsFeature).
+        CFBundleURLTypes:
+          - CFBundleURLName: dev.unrush.theseus
+            CFBundleURLSchemes:
+              - theseus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.unrush.theseus
+        TARGETED_DEVICE_FAMILY: "1,2"
+        # BRAND-02 (ADR 0141): actool writes CFBundleIcons from these; never hand-edit it.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # The flattened 1024 px renditions actool bakes per icon are most of Assets.car; `space`
+        # stores them zip- instead of lzfse-compressed (still lossless), about 7% smaller.
+        ASSETCATALOG_COMPILER_OPTIMIZATION: space
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-Monet AppIcon-VanDijckVerdigris AppIcon-CezanneApple AppIcon-CezanneBasket AppIcon-PeetersVerdigris AppIcon-PeetersPeek AppIcon-BriePeek AppIcon-VanDijckTower AppIcon-HammershoiMousehole AppIcon-HammershoiSun AppIcon-PixelMousehole"
+        # PLAT-05 / ADR 0110: on the Mac as "Designed for iPad", not Mac Catalyst.
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: YES
+        SUPPORTS_MACCATALYST: NO
+
+  # PLAT-01: the home-screen and Lock Screen widgets. Extensions stay small (ADR 0100): only
+  # AppIntentsFeature (deep links, intents), Persistence (the shared snapshot) and DesignSystem.
+  TheseusWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/Widgets
+    dependencies:
+      - package: Modules
+        product: AppIntentsFeature
+      - package: Modules
+        product: Persistence
+      - package: Modules
+        product: DesignSystem
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    entitlements:
+      path: Extensions/Widgets/TheseusWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.unrush.theseus
+    info:
+      path: Extensions/Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Theseus
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        TheseusServerAlias: $(THESEUS_SERVER_ALIAS)
+        TheseusModelNames: $(THESEUS_MODEL_NAMES)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.unrush.theseus.widgets
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  # PLAT-04: "Share to Theseus" (text, links, photos, files) into a new Chat via the App Group inbox.
+  TheseusShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/Share
+    dependencies:
+      - package: Modules
+        product: AppIntentsFeature
+      - package: Modules
+        product: Persistence
+      - package: Modules
+        product: DesignSystem
+    entitlements:
+      path: Extensions/Share/TheseusShare.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.unrush.theseus
+    info:
+      path: Extensions/Share/Info.plist
+      properties:
+        CFBundleDisplayName: Theseus
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        TheseusServerAlias: $(THESEUS_SERVER_ALIAS)
+        TheseusModelNames: $(THESEUS_MODEL_NAMES)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+              NSExtensionActivationSupportsFileWithMaxCount: 10
+              NSExtensionActivationSupportsAttachmentsWithMaxCount: 10
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.unrush.theseus.share
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  TheseusTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - App/Tests
+      # The long imported Chat the transcript tests open (#197).
+      - path: Modules/Tests/Fixtures/open-webui-0.12.3/synthetic/chat.long.json
+        buildPhase: resources
+    dependencies:
+      - target: Theseus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.unrush.theseus.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+  TheseusUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - App/UITests
+    dependencies:
+      - target: Theseus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.unrush.theseus.uitests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Theseus:
+    build:
+      targets:
+        Theseus: all
+    run:
+      config: Debug
+      # ADR 0173: local StoreKit testing for Theseus Pro (the product, Ask to Buy, refunds) in
+      # Xcode runs. Device installs through `scripts/install-device` use the sandbox App Store.
+      storeKitConfiguration: App/Theseus.storekit
+    test:
+      config: Debug
+      targets:
+        - TheseusTests
+        - TheseusUITests

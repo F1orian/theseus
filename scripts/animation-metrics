@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+"""Frame-budget numbers for the animation tour (docs/research/animation-audit.md).
+
+Usage:
+  scripts/animation-metrics <trace> [--phases <xcodebuild log>] [--json]
+  scripts/animation-metrics --video <recording.mp4> [--start <epoch>] [--phases <log>] [--json]
+
+The simulator can't run Instruments' Hitches instrument ("not supported on this platform"), and
+the SwiftUI instrument only sees macOS processes, so the tour records **Core Animation Commits**
+and **Hangs** for the app's process and this script derives:
+
+- commits: how many transactions the app committed and how many overran a 120 Hz frame (8.3 ms)
+  or a 60 Hz frame (16.7 ms). A commit that long makes its frame late (a commit hitch).
+- hitch-like ms/s: each commit's overrun past 16.7 ms, summed per second of the window — the
+  idea of Apple's hitch time ratio, measured on commits instead of display frames.
+- hangs: main-thread hangs and microhangs (>= 250 ms) of the app.
+
+`--video` reads the frame timestamps of a `simctl io recordVideo` capture (variable frame rate:
+a frame is written only when the screen changed). Within motion (frames < 200 ms apart) a gap
+longer than 25 ms is at least one dropped 60 Hz frame; "dropped ms/s" sums the gaps' excess over
+16.7 ms per second of motion. The simulator renders on the Mac's GPU, so treat it as relative
+(before vs after on the same machine), not as a device number.
+
+`--phases` limits both to the windows between `TOUR-PHASE <name> begin|end <epoch>` lines that
+`AnimationTourUITests` prints; `--start` is the video's start (epoch seconds; `build/record.sh`
+writes it next to the video).
+"""
+import datetime
+import json
+import re
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+
+PROCESS = "Theseus ("
+
+
+def arg(name: str) -> str | None:
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else None
+
+
+def phases(log: str | None) -> list[tuple[str, float, float]]:
+    if not log:
+        return []
+    begins: dict[str, float] = {}
+    found = []
+    for line in open(log, encoding="utf-8", errors="replace"):
+        match = re.search(r"TOUR-PHASE (\S+) (begin|end) ([\d.]+)", line)
+        if not match:
+            continue
+        name, edge, stamp = match.group(1), match.group(2), float(match.group(3))
+        if edge == "begin":
+            begins[name] = stamp
+        elif name in begins:
+            found.append((name, begins.pop(name), stamp))
+    return found
+
+
+def export(trace: str, xpath: str) -> str:
+    return subprocess.run(
+        ["xcrun", "xctrace", "export", "--input", trace, "--xpath", xpath], capture_output=True, text=True
+    ).stdout
+
+
+def trace_start(trace: str) -> float:
+    toc = subprocess.run(["xcrun", "xctrace", "export", "--input", trace, "--toc"], capture_output=True, text=True).stdout
+    date = re.search(r"<start-date>([^<]+)</start-date>", toc).group(1)
+    return datetime.datetime.fromisoformat(date).timestamp()
+
+
+def rows(trace: str, schema: str):
+    """Yields each row as {mnemonic: element}, resolving the id/ref de-duplication."""
+    out = export(trace, f'/trace-toc/run[@number="1"]/data/table[@schema="{schema}"]')
+    if not out.strip():
+        return
+    node = ET.fromstring(out).find("node")
+    if node is None:
+        return
+    columns = [c.findtext("mnemonic") for c in node.find("schema").findall("col")]
+    by_id: dict[str, ET.Element] = {}
+
+    def index(element: ET.Element):
+        if "id" in element.attrib:
+            by_id[element.attrib["id"]] = element
+        for child in element:
+            index(child)
+
+    for row in node.findall("row"):
+        index(row)
+        values = {}
+        for column, element in zip(columns, list(row)):
+            if "ref" in element.attrib:
+                element = by_id.get(element.attrib["ref"], element)
+            values[column] = element
+        yield values
+
+
+def number(element: ET.Element | None) -> int:
+    return int(element.text) if element is not None and element.text else 0
+
+
+def percentile(values: list[float], fraction: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(round(fraction * (len(ordered) - 1))))]
+
+
+def commit_summary(commits: list[float], hangs: list[float], seconds: float) -> dict:
+    return {
+        "seconds": round(seconds, 1),
+        "commits": len(commits),
+        "p95_ms": round(percentile(commits, 0.95), 2),
+        "max_ms": round(max(commits, default=0), 2),
+        "over_8ms": sum(1 for c in commits if c > 8.33),
+        "over_16ms": sum(1 for c in commits if c > 16.67),
+        "hitch_like_ms_per_s": round(sum(max(0.0, c - 16.67) for c in commits) / seconds, 2) if seconds else 0.0,
+        "hangs": len(hangs),
+        "max_hang_ms": round(max(hangs, default=0), 1),
+    }
+
+
+def summarise_trace(trace: str, windows: list[tuple[str, float, float]]) -> dict:
+    start = trace_start(trace)
+    commits = []  # (epoch, ms)
+    for row in rows(trace, "coreanimation-commit-interval"):
+        if PROCESS in (row.get("process").attrib.get("fmt", "") if row.get("process") is not None else ""):
+            commits.append((start + number(row.get("start")) / 1e9, number(row.get("duration")) / 1e6))
+    hangs = []
+    for row in rows(trace, "potential-hangs"):
+        if PROCESS in (row.get("process").attrib.get("fmt", "") if row.get("process") is not None else ""):
+            hangs.append((start + number(row.get("start")) / 1e9, number(row.get("duration")) / 1e6))
+    result = {"trace": trace}
+    if not windows and commits:
+        windows = [("whole", commits[0][0], commits[-1][0])]
+    for name, begin, end in windows:
+        inside = [ms for at, ms in commits if begin <= at <= end]
+        hung = [ms for at, ms in hangs if begin <= at <= end]
+        result[name] = commit_summary(inside, hung, end - begin)
+    return result
+
+
+def summarise_video(path: str, start: float | None, windows: list[tuple[str, float, float]]) -> dict:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "frame=pts_time", "-of", "csv=p=0", path],
+        capture_output=True, text=True,
+    ).stdout
+    times = [float(x.strip().strip(",")) for x in out.splitlines() if x.strip().strip(",")]
+    if start is not None:
+        times = [start + t for t in times]
+    if not windows or start is None:
+        windows = [("whole", times[0] if times else 0, times[-1] if times else 0)]
+    result = {"video": path}
+    for name, begin, end in windows:
+        inside = [t for t in times if begin <= t <= end]
+        gaps = [(b - a) * 1000 for a, b in zip(inside, inside[1:])]
+        motion = [g for g in gaps if g < 200]
+        dropped = [g for g in motion if g > 25]
+        seconds = sum(motion) / 1000
+        result[name] = {
+            "frames": len(inside),
+            "motion_s": round(seconds, 1),
+            "gaps_over_25ms": len(dropped),
+            "gaps_over_50ms": sum(1 for g in dropped if g > 50),
+            "dropped_ms_per_s": round(sum(g - 16.67 for g in dropped) / seconds, 1) if seconds else 0.0,
+        }
+    return result
+
+
+def main() -> None:
+    windows = phases(arg("--phases"))
+    if "--video" in sys.argv:
+        start = arg("--start")
+        summary = summarise_video(arg("--video"), float(start) if start else None, windows)
+        if "--json" in sys.argv:
+            print(json.dumps(summary, indent=2))
+            return
+        for name, v in summary.items():
+            if name == "video":
+                continue
+            print(f"{summary['video']} [{name}]: {v['frames']} frames, {v['motion_s']} s in motion, "
+                  f"gaps >25 ms {v['gaps_over_25ms']} (>50 ms {v['gaps_over_50ms']}), dropped {v['dropped_ms_per_s']} ms/s")
+        return
+    paths = [a for a in sys.argv[1:] if not a.startswith("--") and a not in (arg("--phases"),)]
+    if not paths:
+        print(__doc__)
+        sys.exit(1)
+    summary = summarise_trace(paths[0], windows)
+    if "--json" in sys.argv:
+        print(json.dumps(summary, indent=2))
+        return
+    for name, c in summary.items():
+        if name == "trace":
+            continue
+        print(f"{summary['trace']} [{name}, {c['seconds']} s]: commits {c['commits']}  p95 {c['p95_ms']} ms  "
+              f"max {c['max_ms']} ms  >8.3 ms {c['over_8ms']}  >16.7 ms {c['over_16ms']}  "
+              f"hitch-like {c['hitch_like_ms_per_s']} ms/s  hangs {c['hangs']} (max {c['max_hang_ms']} ms)")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,17 @@
+{"t":0,"dir":"note","note":"socket: open wss://owui.example.com/ws/socket.io/?EIO=4&transport=websocket"}
+{"t":26,"dir":"in","frame":"0{\"sid\":\"FN7g3XYBiBYIZj6IAAAK\",\"upgrades\":[],\"pingTimeout\":20000,\"pingInterval\":25000,\"maxPayload\":16777216}"}
+{"t":26,"dir":"out","frame":"40{\"token\":\"eyJhbGciOiJIUzI1NiJ9.c2NydWJiZWQ.c2NydWJiZWQ\"}"}
+{"t":36,"dir":"in","frame":"40{\"sid\":\"P4NKHttLPoIixzMYAAAL\"}"}
+{"t":36,"dir":"out","frame":"420[\"user-join\",{\"auth\":{\"token\":\"eyJhbGciOiJIUzI1NiJ9.c2NydWJiZWQ.c2NydWJiZWQ\"}}]"}
+{"t":96,"dir":"in","frame":"430[{\"id\":\"00000000-0000-4000-8000-000000000001\",\"name\":\"Test User\"}]"}
+{"t":96,"dir":"note","note":"socket: joined as [{\"id\":\"00000000-0000-4000-8000-000000000001\",\"name\":\"Test User\"}]"}
+{"t":96,"dir":"note","note":"POST /api/chat/completions {\"stream\":true,\"model\":\"claude-haiku-5-5\",\"messages\":[],\"params\":{\"temperature\":7,\"max_tokens\":-5},\"tool_servers\":[],\"features\":{\"voice\":false,\"image_generation\":false,\"code_interpreter\":false,\"web_search\":false,\"memory\":false},\"variables\":{},\"model_item\":{\"id\":\"claude-haiku-5-5\"},\"session_id\":\"P4NKHttLPoIixzMYAAAL\",\"parent_id\":null,\"user_message\":{\"id\":\"00000000-0000-4000-8000-0000000e0046\",\"parentId\":null,\"childrenIds\":[],\"role\":\"user\",\"content\":\"[theseus-test] Say hi.\",\"timestamp\":1792780315,\"models\":[\"claude-haiku-5-5\"]},\"message_ids\":[{\"model_id\":\"claude-haiku-5-5\",\"message_id\":\"00000000-0000-4000-8000-0000000e0045\",\"modelIdx\":0}],\"background_tasks\":{\"title_generation\":true,\"tags_generation\":false,\"follow_up_generation\":true}}"}
+{"t":226,"dir":"in","frame":"42[\"events\",{\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\",\"message_id\":\"00000000-0000-4000-8000-0000000e0046\",\"data\":{\"type\":\"chat:list\",\"data\":{\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\",\"folder_id\":null}}}]"}
+{"t":316,"dir":"note","note":"completion response 200 {\"status\":true,\"task_ids\":[\"00000000-0000-4000-8000-0000000e0047\"],\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\"}"}
+{"t":318,"dir":"in","frame":"42[\"events\",{\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\",\"message_id\":\"00000000-0000-4000-8000-0000000e0045\",\"data\":{\"type\":\"chat:active\",\"data\":{\"active\":true,\"folder_id\":null}}}]"}
+{"t":1256,"dir":"in","frame":"42[\"events\",{\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\",\"message_id\":\"00000000-0000-4000-8000-0000000e0045\",\"data\":{\"type\":\"chat:message:error\",\"data\":{\"error\":{\"content\":\"max_tokens: must be greater than or equal to 0\"},\"done\":true}}}]"}
+{"t":1305,"dir":"in","frame":"42[\"events\",{\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\",\"message_id\":\"00000000-0000-4000-8000-0000000e0045\",\"data\":{\"type\":\"chat:active\",\"data\":{\"active\":false,\"folder_id\":null}}}]"}
+{"t":1945,"dir":"in","frame":"42[\"events\",{\"chat_id\":\"00000000-0000-4000-8000-0000000c0001\",\"message_id\":\"00000000-0000-4000-8000-0000000e0045\",\"data\":{\"type\":\"chat:title\",\"data\":\"Greeting Request\"}}]"}
+{"t":3355,"dir":"note","note":"unknown model → 400 {\"detail\":\"Model not found\"}"}
+{"t":3355,"dir":"out","frame":"41"}
+{"t":3368,"dir":"note","note":"socket: closed"}

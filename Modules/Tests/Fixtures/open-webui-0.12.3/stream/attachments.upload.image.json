@@ -1,0 +1,16 @@
+{
+  "id": "00000000-0000-4000-8000-0000000e0032",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "hash": null,
+  "filename": "[theseus-test] swatch.png",
+  "data": {},
+  "meta": {
+    "name": "[theseus-test] swatch.png",
+    "content_type": "image/png",
+    "size": 73,
+    "file_hash": "88b7c87998e4b1af2a5da368f8fb2359134295a56bee20c3fe2c8323ceb79c7f",
+    "data": {}
+  },
+  "created_at": 1792790415,
+  "updated_at": 1792790415
+}

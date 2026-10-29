@@ -1,0 +1,388 @@
+{
+  "totals": {
+    "lifetime_tokens": 120000,
+    "input_tokens": 100000,
+    "output_tokens": 20000,
+    "peak_daily_tokens": 40000,
+    "longest_chat_seconds": 900,
+    "current_streak": 3,
+    "longest_streak": 9,
+    "total_chats": 42,
+    "active_days": 30,
+    "models_used": 2,
+    "messages": 400,
+    "user_messages": 200,
+    "assistant_messages": 200
+  },
+  "heatmap": [
+    {
+      "date": "2026-10-10",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-11",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {}
+    },
+    {
+      "date": "2026-10-12",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 2
+      }
+    },
+    {
+      "date": "2026-10-13",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {}
+    },
+    {
+      "date": "2026-10-14",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {}
+    },
+    {
+      "date": "2026-10-15",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-10-16",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 2
+      }
+    },
+    {
+      "date": "2026-10-17",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 3
+      }
+    },
+    {
+      "date": "2026-10-18",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-19",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-10-20",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {}
+    },
+    {
+      "date": "2026-10-21",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {}
+    },
+    {
+      "date": "2026-10-22",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-23",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1,
+        "claude-opus-5-5": 1
+      }
+    }
+  ],
+  "weekly_heatmap": [
+    {
+      "date": "2026-08-31",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-09-07",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-09-14",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {}
+    },
+    {
+      "date": "2026-09-21",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 3
+      }
+    },
+    {
+      "date": "2026-09-28",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-05",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-10-12",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 2
+      }
+    },
+    {
+      "date": "2026-10-19",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 3,
+        "claude-opus-5-5": 3
+      }
+    }
+  ],
+  "cumulative_heatmap": [
+    {
+      "date": "2026-10-10",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-11",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-10-12",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 2
+      }
+    },
+    {
+      "date": "2026-10-13",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 3
+      }
+    },
+    {
+      "date": "2026-10-14",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-15",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-10-16",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 2
+      }
+    },
+    {
+      "date": "2026-10-17",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 3
+      }
+    },
+    {
+      "date": "2026-10-18",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-19",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1
+      }
+    },
+    {
+      "date": "2026-10-20",
+      "messages": 4,
+      "chats": 2,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 2
+      }
+    },
+    {
+      "date": "2026-10-21",
+      "messages": 6,
+      "chats": 3,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 3
+      }
+    },
+    {
+      "date": "2026-10-22",
+      "messages": 0,
+      "chats": 0,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 0
+      }
+    },
+    {
+      "date": "2026-10-23",
+      "messages": 2,
+      "chats": 1,
+      "tokens": 0,
+      "models": {
+        "claude-sonnet-5-5": 1,
+        "claude-opus-5-5": 1
+      }
+    }
+  ],
+  "insights": {
+    "most_used_model": "claude-sonnet-5-5",
+    "average_tokens_per_chat": 1000,
+    "average_messages_per_active_day": 10,
+    "user_message_share": 50,
+    "assistant_message_share": 50
+  },
+  "top_models": [
+    {
+      "model_id": "claude-sonnet-5-5",
+      "messages": 200,
+      "input_tokens": 50000,
+      "output_tokens": 10000,
+      "total_tokens": 60000
+    },
+    {
+      "model_id": "claude-opus-5-5",
+      "messages": 100,
+      "input_tokens": 30000,
+      "output_tokens": 6000,
+      "total_tokens": 36000
+    }
+  ],
+  "top_tools": [
+    {
+      "name": "fetch_url",
+      "count": 10
+    },
+    {
+      "name": "search_web",
+      "count": 9
+    },
+    {
+      "name": "run_command",
+      "count": 8
+    },
+    {
+      "name": "delegate_task",
+      "count": 7
+    },
+    {
+      "name": "update_task",
+      "count": 6
+    }
+  ],
+  "period": {
+    "start_date": 1729712078,
+    "end_date": 1792784078,
+    "days": 730
+  }
+}

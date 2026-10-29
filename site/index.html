@@ -1,0 +1,418 @@
+<!doctype html>
+<!-- The Theseus website, served from https://unru.sh/theseus/. Plain HTML: copy site/ there as is.
+     The support email and repository URL also live in Modules/Sources/DesignSystem/PublicLinks.swift;
+     scripts/release/preflight checks they match. Media in assets/: marketing/site-assets/build.py. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theseus: the native iPhone and iPad app for Open WebUI</title>
+<meta name="description" content="Theseus is a fast, native iPhone and iPad app for the Open WebUI server you already run. Streaming chat, projects, memory, voice, artifacts and code, with nothing in between.">
+<meta name="theme-color" content="#F3F3F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111318" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Theseus for Open WebUI">
+<meta property="og:description" content="The native iPhone and iPad app for the Open WebUI server you already run.">
+<meta property="og:url" content="https://unru.sh/theseus/">
+<meta property="og:image" content="https://unru.sh/theseus/assets/film/poster.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/DepartureMono-Regular.otf" as="font" type="font/otf" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="assets/mouse/scenes.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><span class="scene idle-head" style="--px: 2" aria-hidden="true"></span>Theseus</a>
+    <nav aria-label="Main">
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a href="support/">Support</a>
+      <a class="keep" href="https://github.com/F1orian/theseus">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ Hero ============ -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <p class="plaque eyebrow">iPhone &amp; iPad · for your Open WebUI server</p>
+    <h1 id="hero-title">Your own AI server, <em>native</em> in your pocket.</h1>
+    <p class="lede">Theseus is a fast, native app for the Open WebUI server you already run. Streaming chat,
+      projects, memory, voice, artifacts and code: everything your server can do, with nothing in between.</p>
+    <div class="actions">
+      <span class="button" role="note"><span class="stack"><small>Coming soon</small>On the App Store</span></span>
+      <a class="button quiet" href="https://github.com/F1orian/theseus">Read the source</a>
+    </div>
+    <p class="plaque terms">No ads · no tracking · no account · open source</p>
+  </div>
+
+  <div class="wall">
+    <img class="peek pixel" src="assets/mouse/peek.svg" alt="" width="68" height="56">
+    <figure class="frame">
+      <img src="assets/art/cole-view-of-florence.webp" width="2000" height="1232"
+           alt="Thomas Cole's View of Florence: the city and the Arno from a hillside at sunset.">
+    </figure>
+    <div class="phones">
+      <figure class="phone"><img src="assets/screens/hero-drawer.webp" width="640" height="1391"
+        alt="The drawer: chats, projects and artifacts, starred chats and recent ones."></figure>
+      <figure class="phone"><img src="assets/screens/hero-chart.webp" width="640" height="1391"
+        alt="A chat with a training log attached: the answer charts the weekly distance and returns the chart as a PNG file."></figure>
+      <figure class="phone"><img src="assets/screens/hero-project.webp" width="640" height="1391"
+        alt="A project, Kyoto Trip, under a Corot landscape, with its instructions, a file and its chats."></figure>
+    </div>
+    <p class="plaque credit">On the wall: <a href="https://www.clevelandart.org/art/1961.39">View of Florence</a>,
+      Thomas Cole, 1837 · Cleveland Museum of Art · CC0</p>
+  </div>
+
+  <div class="floor" aria-hidden="true"><div class="runner"></div></div>
+</section>
+
+<!-- ============ The film ============ -->
+<section class="film" aria-labelledby="film-title">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="plaque">Now showing · 96 seconds</p>
+      <h2 id="film-title">See it before you install it.</h2>
+    </div>
+    <figure class="screen">
+      <video controls preload="none" playsinline poster="assets/film/poster.webp" width="1280" height="720">
+        <source src="assets/film/theseus-launch.mp4" type="video/mp4">
+        <a href="assets/film/theseus-launch.mp4">Watch the launch film (MP4)</a>
+      </video>
+    </figure>
+    <div class="below">
+      <span class="plaque">Music: “Soft Technology” by Miromax · Pixabay Content License. Shows the Wikipedia
+        article “Claude Shannon” (text CC BY-SA 4.0; photo: Tekniska museet, CC BY 2.0).</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ The rooms ============ -->
+<section id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="plaque">The rooms</p>
+      <h2 id="features-title">A calm app for serious work.</h2>
+    </div>
+
+    <article class="room">
+      <div class="copy">
+        <div class="room-mark"><p class="plaque">Room I · Chat</p><span class="scene work-thinking compact" aria-hidden="true"></span></div>
+        <h3>Answers that arrive as they're written.</h3>
+        <p>Responses stream in token by token, with Markdown, code blocks, math and tables. When a model thinks,
+          searches the web or calls a tool, each step appears in the answer and opens with a tap. Sources are
+          listed underneath.</p>
+        <ul>
+          <li>Edit a message, retry a response, and move between branches</li>
+          <li>Copy, share, read aloud, rate or report any answer</li>
+          <li>Follow-up suggestions under each answer</li>
+        </ul>
+      </div>
+      <div class="shots">
+        <figure class="phone low"><img src="assets/screens/chat.webp" width="640" height="1391" loading="lazy"
+          alt="An answer after its steps: thinking, searching the web and reading a page, then a plan with headings and lists."></figure>
+        <figure class="phone"><img src="assets/screens/answer.webp" width="640" height="1391" loading="lazy"
+          alt="The end of an answer: a heading, a bulleted list in bold and plain type, and the actions underneath."></figure>
+      </div>
+    </article>
+
+    <article class="room flip">
+      <div class="copy">
+        <p class="plaque">Room II · Models</p>
+        <h3>Every model on your server, one tap away.</h3>
+        <p>The model picker lists every model your server offers, with what each one can do: see images, read
+          files, search the web, run code. For models that support it, choose how much effort they spend, from a
+          quick reply to a long, careful one.</p>
+        <ul>
+          <li>A default model, and a different one for any chat</li>
+          <li>Effort levels, from low to max</li>
+          <li>Web search, code execution, Skills and Connectors, switched per chat</li>
+        </ul>
+      </div>
+      <div class="shots">
+        <figure class="phone"><img src="assets/screens/models.webp" width="640" height="1391" loading="lazy"
+          alt="The model picker, listing each model with what it can do."></figure>
+        <figure class="phone low"><img src="assets/screens/effort.webp" width="640" height="1392" loading="lazy"
+          alt="Effort levels: low, medium, high, extra high and max."></figure>
+      </div>
+    </article>
+
+    <article class="room">
+      <div class="copy">
+        <div class="room-mark"><p class="plaque">Room III · Artifacts &amp; code</p><span class="scene work-runningCode compact" aria-hidden="true"></span></div>
+        <h3>Ask for a thing. Get the thing.</h3>
+        <p>Artifacts (HTML pages, SVG and diagrams) open in a sandboxed viewer with a live preview and the code,
+          and they work offline. If your server has a sandbox, models run Python there and hand back charts and
+          files you can open or share.</p>
+        <ul>
+          <li>Live preview and source, side by side</li>
+          <li>Python in Open Terminal or a Jupyter code interpreter</li>
+          <li>Charts and generated files, right in the chat</li>
+        </ul>
+      </div>
+      <div class="shots">
+        <figure class="phone"><img src="assets/screens/artifact-chat.webp" width="640" height="1391" loading="lazy"
+          alt="A chat that built an HTML animation, with the commands it ran and the artifact card."></figure>
+        <figure class="phone low"><img src="assets/screens/artifact.webp" width="640" height="1391" loading="lazy"
+          alt="The artifact viewer: a pixel mouse solving a glowing maze, with Preview and Code tabs."></figure>
+      </div>
+    </article>
+
+    <article class="room flip">
+      <div class="copy">
+        <div class="room-mark"><p class="plaque">Room IV · Projects, memory &amp; history</p><span class="scene work-knowledge compact" aria-hidden="true"></span></div>
+        <h3>Everything in its place.</h3>
+        <p>The drawer holds all your chats, with search, stars and recents. Projects group chats with their own
+          instructions and knowledge files, each under a cover from the collection. Memory shows what the server
+          remembers about you, and you can edit or delete any of it.</p>
+        <ul>
+          <li>Projects with instructions and knowledge</li>
+          <li>Memory, custom instructions and styles</li>
+          <li>Search across every chat on the server</li>
+        </ul>
+      </div>
+      <div class="shots">
+        <figure class="phone low"><img src="assets/screens/projects.webp" width="640" height="1391" loading="lazy"
+          alt="Projects, each with a painting as its cover."></figure>
+        <figure class="phone"><img src="assets/screens/memory.webp" width="640" height="1391" loading="lazy"
+          alt="Memory: what the server remembers about you, one card per entry with the date it was added."></figure>
+      </div>
+    </article>
+
+    <article class="room">
+      <div class="copy">
+        <p class="plaque">Room V · Voice</p>
+        <h3>Talk it through.</h3>
+        <p>Dictate into the composer, or switch to voice mode and talk hands-free: it listens, answers aloud and
+          shows the conversation as text. Speech is recognised and spoken on the device by default.</p>
+      </div>
+      <div class="shots">
+        <figure class="phone"><img src="assets/screens/voice-listening.webp" width="640" height="1391" loading="lazy"
+          alt="Voice mode listening: 'Start talking', with the microphone and end buttons."></figure>
+        <figure class="phone low"><img src="assets/screens/voice.webp" width="640" height="1391" loading="lazy"
+          alt="Voice mode answering a packing question for Kyoto, with the answer as text."></figure>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ iPad ============ -->
+<section class="ipad-room" aria-labelledby="ipad-title">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="plaque">Room VI · iPad</p>
+      <h2 id="ipad-title">More room on iPad.</h2>
+      <p>A sidebar that stays open, split view, and keyboard shortcuts for everything you do often.</p>
+    </div>
+    <figure class="ipad"><img src="assets/screens/ipad.webp" width="1600" height="2134" loading="lazy"
+      alt="Theseus on iPad: the sidebar with chats and projects next to a chat with a day-by-day table."></figure>
+  </div>
+</section>
+
+<!-- ============ After hours ============ -->
+<section id="privacy" class="night" aria-labelledby="privacy-title">
+  <div class="wrap">
+    <article class="room">
+      <div class="copy">
+        <p class="plaque">After hours · Incognito &amp; privacy</p>
+        <h3 id="privacy-title">No one else in the building.</h3>
+        <p>Theseus has no servers of its own and collects nothing. Your chats go only to the server you connect
+          to, and through it to the AI providers its admin set up. Incognito chats aren't saved at all, not even
+          to your history or memory.</p>
+        <ul>
+          <li>No analytics, no ads, no tracking, no third-party SDKs</li>
+          <li>Your sign-in token lives in the iOS Keychain</li>
+          <li>Speech is recognised on the device by default</li>
+        </ul>
+        <p class="note"><img class="pixel" src="assets/mouse/lantern.svg" alt="" width="42" height="36">
+          <span>Read the <a href="privacy/">privacy policy</a>. It's short.</span></p>
+      </div>
+      <div class="shots">
+        <figure class="phone"><img src="assets/screens/incognito.webp" width="640" height="1391" loading="lazy"
+          alt="Incognito: 'You're in incognito. This chat won't be saved to your history or used for memory.'"></figure>
+      </div>
+    </article>
+
+    <div class="promises">
+      <div><p class="plaque">01</p><h4>Your server, your rules</h4>
+        <p>Models, limits and data retention are set by your server's admin. Theseus never goes around them.</p></div>
+      <div><p class="plaque">02</p><h4>Nothing in between</h4>
+        <p>No relay, no proxy, no account with us. The app talks straight to your server's API.</p></div>
+      <div><p class="plaque">03</p><h4>Open source</h4>
+        <p>GPL-3.0. Read every line on <a href="https://github.com/F1orian/theseus">GitHub</a>, or build it yourself.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Beyond the app ============ -->
+<section aria-labelledby="beyond-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="plaque">Beyond the app</p>
+      <h2 id="beyond-title">At home in iOS.</h2>
+      <p>The parts a web app can't do: Home Screen and Lock Screen widgets, the Share sheet, Spotlight, Shortcuts
+        and Siri.</p>
+    </div>
+    <div class="beyond">
+      <article class="card">
+        <h3>Widgets</h3>
+        <p>Start a chat, open the camera or dictation, and see your recent chats from the Home Screen. A Lock Screen
+          widget starts a new chat.</p>
+        <div class="widgets">
+          <img class="medium" src="assets/screens/widget-medium-light.webp" width="1046" height="492" loading="lazy"
+            alt="The medium widget: a chat button, camera, dictation and voice, and three recent chats.">
+          <img src="assets/screens/widget-small-light.webp" width="493" height="493" loading="lazy"
+            alt="The small widget in light mode.">
+          <img src="assets/screens/widget-small-dark.webp" width="493" height="493" loading="lazy"
+            alt="The small widget in dark mode.">
+        </div>
+      </article>
+      <article class="card">
+        <h3>Share sheet</h3>
+        <p>Send a link, text, photos or files from any app straight into a new chat.</p>
+        <figure class="phone"><img src="assets/screens/share.webp" width="640" height="1392" loading="lazy"
+          alt="The Share extension: a new chat with a Wikipedia link attached."></figure>
+      </article>
+      <article class="card">
+        <h3>Shortcuts &amp; Siri</h3>
+        <p>Ask Theseus, start a new, voice or incognito chat, or open one, from Shortcuts, Siri and Spotlight.</p>
+        <figure class="phone"><img src="assets/screens/shortcuts.webp" width="640" height="1391" loading="lazy"
+          alt="The Shortcuts app listing Theseus's actions: Ask Theseus, New Chat, Voice Mode, Incognito Chat and Open Chat."></figure>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ The checklist ============ -->
+<section aria-labelledby="checklist-title" style="padding-top: 0">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="plaque">The full inventory</p>
+      <h2 id="checklist-title">Everything from the web app. Made for the phone.</h2>
+      <p>Theseus talks to your server's own API, so your chats, projects and memory are the same ones you see in the
+        browser. Nothing is left behind in a web view.</p>
+    </div>
+    <ul class="checklist">
+      <li>Streaming answers</li><li>Thinking</li><li>Web search</li><li>Sources</li><li>Tool steps</li>
+      <li>Rich Markdown</li><li>Code &amp; math</li><li>Tables</li><li>Model picker</li><li>Effort levels</li>
+      <li>Edit &amp; retry</li><li>Branches</li><li>Artifacts</li><li>Live preview</li><li>Runs Python</li>
+      <li>Charts &amp; files</li><li>Projects</li><li>Knowledge files</li><li>Instructions</li><li>Memory</li>
+      <li>Styles</li><li>Starred &amp; recents</li><li>Search</li><li>Photos &amp; camera</li><li>Vision</li>
+      <li>Files</li><li>Dictation</li><li>Voice mode</li><li>Read aloud</li><li>Incognito</li>
+      <li>Skills</li><li>Connectors</li><li>iPad sidebar</li><li>Split view</li><li>Keyboard shortcuts</li>
+      <li>Widgets</li><li>Lock Screen</li><li>Share sheet</li><li>Shortcuts &amp; Siri</li><li>Several servers</li>
+      <li>SSO &amp; LDAP</li><li>Two-step sign-in</li><li>Dark mode</li><li>Dynamic Type</li><li>VoiceOver</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ Questions ============ -->
+<section aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="plaque">At the information desk</p>
+      <h2 id="faq-title">Before you install.</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Do I need my own server?</summary>
+        <p>Yes. Theseus is a client for <a href="https://openwebui.com">Open WebUI</a> 0.12 or newer. It doesn't host
+          any models and doesn't come with an account. You, your team or your organisation run the server; the
+          models are whatever its admin connected, from local ones to cloud providers.</p>
+      </details>
+      <details>
+        <summary>How do I sign in?</summary>
+        <p>With the account you already have on the server: a password, LDAP, or your organisation's single
+          sign-on, with two-step verification. Theseus doesn't create accounts; your server's admin does.
+          Several servers and accounts can sit side by side.</p>
+      </details>
+      <details>
+        <summary>Where do my chats go?</summary>
+        <p>Only to your server, and through it to the AI providers its admin set up. Theseus keeps a copy on your
+          device so it opens fast and works offline, and you can delete it in Settings › Data &amp; privacy.
+          Nothing goes to us: we don't run a server for Theseus.</p>
+      </details>
+      <details>
+        <summary>Can it run code?</summary>
+        <p>If your server has a sandbox, yes: Open Terminal or a Jupyter code interpreter. Models run Python there
+          and send back charts and files.</p>
+      </details>
+      <details>
+        <summary>Which devices does it run on?</summary>
+        <p>iPhone and iPad with iOS 26 or iPadOS 26 or later. The server needs to be reachable over HTTPS, or on your
+          local network.</p>
+      </details>
+      <details>
+        <summary>Is it open source?</summary>
+        <p>Yes. Theseus is GPL-3.0, and the code is on <a href="https://github.com/F1orian/theseus">GitHub</a>.
+          Issues and pull requests are welcome.</p>
+      </details>
+      <details>
+        <summary>Is Theseus made by Open WebUI?</summary>
+        <p>No. Theseus is an independent app and isn't affiliated with the Open WebUI project. Questions about your
+          account or the models go to your server's admin; questions about the app go to
+          <a href="mailto:theseus@unru.sh">theseus@unru.sh</a>.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Closing ============ -->
+<section class="closing" aria-labelledby="closing-title" style="padding-top: 0">
+  <div class="wrap">
+    <span class="scene work-waitingOnYou large" aria-hidden="true"></span>
+    <h2 id="closing-title">Coming soon to the App Store.</h2>
+    <p>Theseus will be available for iPhone and iPad. The source code is on GitHub now.</p>
+    <div class="actions">
+      <span class="button" role="note"><span class="stack"><small>Coming soon</small>On the App Store</span></span>
+      <a class="button quiet" href="https://github.com/F1orian/theseus">Read the source</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <a class="brand" href="./"><span class="scene idle-head" style="--px: 2" aria-hidden="true"></span>Theseus</a>
+      <p>The native iPhone and iPad app for Open WebUI. Theseus is independent and not affiliated with the Open
+        WebUI project.</p>
+      <p>Contact: <a href="mailto:theseus@unru.sh">theseus@unru.sh</a></p>
+    </div>
+    <div>
+      <h4 class="plaque">Visit</h4>
+      <ul>
+        <li><a href="support/">Support</a></li>
+        <li><a href="privacy/">Privacy policy</a></li>
+        <li><a href="impressum/">Legal notice (Impressum)</a></li>
+        <li><a href="https://github.com/F1orian/theseus">Source code</a></li>
+        <li><a href="https://github.com/F1orian/theseus/issues">Report a bug</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="plaque">The collection</h4>
+      <ul class="credits">
+        <li>Thomas Cole, View of Florence, 1837 · Cleveland Museum of Art · CC0</li>
+                <li>Plaques set in Departure Mono · SIL OFL 1.1</li>
+      </ul>
+      <p class="plaque trademarks">Apple, iPhone, iPad, App Store, Siri and Spotlight are trademarks of Apple Inc.
+        Open WebUI is a trademark of its owner. Both are used here only to describe what Theseus works with.</p>
+      <div class="lineage">
+        <figure class="frame"><img src="assets/art/zeshin-mouse.webp" width="761" height="900" loading="lazy"
+          alt="Shibata Zeshin's Mouse, 1847: a white mouse in ink and colour."></figure>
+        <span class="scene idle-sit" style="--px: 2" aria-hidden="true"></span>
+        <p class="plaque">Lineage, not imitation. Shibata Zeshin, Mouse, 1847 · Cleveland Museum of Art · CC0</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

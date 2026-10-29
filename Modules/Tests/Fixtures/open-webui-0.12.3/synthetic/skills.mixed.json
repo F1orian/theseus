@@ -1,0 +1,177 @@
+[
+  {
+    "version_id": "meeting-notes-v1",
+    "id": "meeting-notes",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "Meeting notes",
+    "description": "What the meeting-notes skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "user",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "tone-check-v1",
+    "id": "tone-check",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "Tone check",
+    "description": "What the tone-check skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": false,
+    "access_grants": [
+      {
+        "id": "grant-1",
+        "resource_type": "skill",
+        "resource_id": "x",
+        "principal_type": "user",
+        "principal_id": "*",
+        "permission": "read",
+        "created_at": 1792760000
+      }
+    ],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "user",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "brand-voice-v1",
+    "id": "brand-voice",
+    "user_id": "00000000-0000-4000-8000-000000000002",
+    "name": "Brand voice",
+    "description": "What the brand-voice skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [
+      {
+        "id": "grant-2",
+        "resource_type": "skill",
+        "resource_id": "x",
+        "principal_type": "user",
+        "principal_id": "*",
+        "permission": "read",
+        "created_at": 1792760000
+      }
+    ],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Ada Admin",
+      "role": "admin",
+      "email": "ada@example.com"
+    }
+  },
+  {
+    "version_id": "legal-review-v1",
+    "id": "legal-review",
+    "user_id": "00000000-0000-4000-8000-000000000002",
+    "name": "Legal review",
+    "description": "What the legal-review skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [
+      {
+        "id": "grant-3",
+        "resource_type": "skill",
+        "resource_id": "x",
+        "principal_type": "group",
+        "principal_id": "group-legal",
+        "permission": "read",
+        "created_at": 1792760000
+      },
+      {
+        "id": "grant-4",
+        "resource_type": "skill",
+        "resource_id": "x",
+        "principal_type": "group",
+        "principal_id": "group-legal",
+        "permission": "write",
+        "created_at": 1792760000
+      }
+    ],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Ada Admin",
+      "role": "admin",
+      "email": "ada@example.com"
+    }
+  },
+  {
+    "version_id": "drafts-v1",
+    "id": "drafts",
+    "user_id": "00000000-0000-4000-8000-000000000002",
+    "name": "Drafts",
+    "description": "What the drafts skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Ada Admin",
+      "role": "admin",
+      "email": "ada@example.com"
+    }
+  },
+  {
+    "version_id": "pair-review-v1",
+    "id": "pair-review",
+    "user_id": "00000000-0000-4000-8000-000000000002",
+    "name": "Pair review",
+    "description": "What the pair-review skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [
+      {
+        "id": "grant-5",
+        "resource_type": "skill",
+        "resource_id": "x",
+        "principal_type": "user",
+        "principal_id": "00000000-0000-4000-8000-000000000001",
+        "permission": "write",
+        "created_at": 1792760000
+      }
+    ],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "Ada Admin",
+      "role": "admin",
+      "email": "ada@example.com"
+    }
+  }
+]

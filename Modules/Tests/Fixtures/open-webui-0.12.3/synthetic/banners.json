@@ -1,0 +1,4 @@
+[
+  { "id": "maintenance", "type": "warning", "title": "", "content": "The Server restarts at 22:00 for maintenance.", "dismissible": true, "timestamp": 1792789000 },
+  { "id": "policy", "type": "info", "content": "Please don't paste customer data.", "dismissible": false, "timestamp": 1792789001 }
+]

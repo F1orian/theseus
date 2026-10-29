@@ -1,0 +1,158 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Weekend Trip Planning",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Weekend Trip Planning",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0025",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0026": {
+          "id": "00000000-0000-4000-8000-0000000e0026",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0025"
+          ],
+          "role": "user",
+          "content": "[theseus-test] I want to plan a weekend trip. Before answering, you MUST call the ask_user tool with exactly two questions (destination type and budget), each with 2 options. Do not answer before calling it.",
+          "timestamp": 1792780367,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0025": {
+          "id": "00000000-0000-4000-8000-0000000e0025",
+          "parentId": "00000000-0000-4000-8000-0000000e0026",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "Nature getaway with a $300-600 budget works well for a weekend. Late October is peak fall foliage in much of the US and Canada, so you'll get good scenery for the money.\n\n## Sample weekend itinerary (2 nights)\n\n**Friday evening: Arrive and settle in**\n- Check into a cabin, B&B, or lodge near a trailhead or lake\n- Pick up groceries or eat at a local restaurant\n- Watch the sunset from a viewpoint\n\n**Saturday: Main outdoor day**\n- Morning: Hike a 5-8 mile trail with fall color (go early for parking and cooler air)\n- Midday: Packed lunch at a scenic overlook or lakeside\n- Afternoon: Optional kayak or canoe rental, a short second hike, or a scenic drive\n- Evening: Dinner in town and an early night\n\n**Sunday: Easy morning, then head home**\n- Slow breakfast, a short walk, and a stop at a farm stand or local shop on the drive back\n\n## Rough budget (for 2 people, adjust for solo travel)\n\n| Category | Estimate |\n|---|---|\n| Lodging (2 nights) | $200-300 |\n| Food (mix of groceries and 2-3 meals out) | $100-150 |\n| Gas or transport | $40-80 |\n| Activities (rentals, park fees, etc.) | $0-50 |\n| **Total** | **~$340-580** |\n\nBudget tip: Booking a cabin or Airbnb with a kitchen saves a lot compared with eating out every meal.\n\n## Destination ideas in this budget range\n- **Blue Ridge Mountains (VA/NC):** Scenic drives, waterfalls, and mountain towns like Asheville or Floyd\n- **Hocking Hills, Ohio:** Gorges, waterfalls, and cabins at a low price\n- **Columbia River Gorge, OR:** Waterfalls, trails, and wine country nearby\n- **Maine coast:** Lighthouses, lobster rolls, and peak foliage in October\n- **Sedona, AZ:** Red rock hikes and mild fall weather, though lodging can run higher\n\nIf you tell me where you're starting from and which weekend you're considering, I can narrow this to a specific destination, check drive times, and build a day-by-day plan with lodging suggestions.",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780367,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0027",
+            "session_id": "LVL0J_RYT6lkbOH4AAAT",
+            "tool_ids": [],
+            "skill_ids": [],
+            "terminal_id": null,
+            "tool_servers": [],
+            "filter_ids": [],
+            "features": {
+              "voice": false,
+              "image_generation": false,
+              "code_interpreter": false,
+              "web_search": false,
+              "memory": false
+            },
+            "variables": {},
+            "files": [],
+            "params": {
+              "stream_delta_chunk_size": null,
+              "reasoning_tags": null,
+              "compact_token_threshold": null,
+              "function_calling": "native",
+              "tool_approval_mode": "full",
+              "model_controls": {}
+            }
+          },
+          "output": [
+            {
+              "type": "function_call",
+              "id": "toolu_000000000000000000000001",
+              "call_id": "toolu_000000000000000000000001",
+              "name": "ask_user",
+              "arguments": "{\"questions\":[{\"id\":\"destination_type\",\"header\":\"Destination\",\"question\":\"What type of destination are you looking for for your weekend trip?\",\"options\":[{\"label\":\"Nature getaway\",\"description\":\"Mountains, beach, lake, or forest with hiking, relaxing, and outdoor time\"},{\"label\":\"City break\",\"description\":\"Urban trip with restaurants, museums, shopping, and nightlife\"}],\"allow_other\":true},{\"id\":\"budget\",\"header\":\"Budget\",\"question\":\"What is your approximate budget for the weekend trip?\",\"options\":[{\"label\":\"Moderate (~$300-600)\",\"description\":\"Comfortable stay with a mid-range hotel, some dining out, and paid activities\"},{\"label\":\"Budget-friendly (under $300)\",\"description\":\"Affordable lodging like hostels, Airbnb, or camping, with mostly cheap eats and free activities\"}],\"allow_other\":true}],\"allow_other\":true,\"timeout_ms\":120000}",
+              "status": "completed"
+            },
+            {
+              "type": "function_call_output",
+              "id": "fco_toolu_01LVZLVq7vNLR4NTkGNkKzvp",
+              "call_id": "toolu_000000000000000000000001",
+              "output": [
+                {
+                  "type": "input_text",
+                  "text": "{\"status\":\"answered\",\"answers\":{\"destination_type\":{\"type\":\"option\",\"option_index\":0,\"label\":\"Nature getaway\",\"description\":\"Mountains, beach, lake, or forest with hiking, relaxing, and outdoor time\"},\"budget\":{\"type\":\"option\",\"option_index\":0,\"label\":\"Moderate (~$300-600)\",\"description\":\"Comfortable stay with a mid-range hotel, some dining out, and paid activities\"}}}"
+                }
+              ],
+              "status": "completed"
+            },
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000009",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Nature getaway with a $300-600 budget works well for a weekend. Late October is peak fall foliage in much of the US and Canada, so you'll get good scenery for the money.\n\n## Sample weekend itinerary (2 nights)\n\n**Friday evening: Arrive and settle in**\n- Check into a cabin, B&B, or lodge near a trailhead or lake\n- Pick up groceries or eat at a local restaurant\n- Watch the sunset from a viewpoint\n\n**Saturday: Main outdoor day**\n- Morning: Hike a 5-8 mile trail with fall color (go early for parking and cooler air)\n- Midday: Packed lunch at a scenic overlook or lakeside\n- Afternoon: Optional kayak or canoe rental, a short second hike, or a scenic drive\n- Evening: Dinner in town and an early night\n\n**Sunday: Easy morning, then head home**\n- Slow breakfast, a short walk, and a stop at a farm stand or local shop on the drive back\n\n## Rough budget (for 2 people, adjust for solo travel)\n\n| Category | Estimate |\n|---|---|\n| Lodging (2 nights) | $200-300 |\n| Food (mix of groceries and 2-3 meals out) | $100-150 |\n| Gas or transport | $40-80 |\n| Activities (rentals, park fees, etc.) | $0-50 |\n| **Total** | **~$340-580** |\n\nBudget tip: Booking a cabin or Airbnb with a kitchen saves a lot compared with eating out every meal.\n\n## Destination ideas in this budget range\n- **Blue Ridge Mountains (VA/NC):** Scenic drives, waterfalls, and mountain towns like Asheville or Floyd\n- **Hocking Hills, Ohio:** Gorges, waterfalls, and cabins at a low price\n- **Columbia River Gorge, OR:** Waterfalls, trails, and wine country nearby\n- **Maine coast:** Lighthouses, lobster rolls, and peak foliage in October\n- **Sedona, AZ:** Red rock hikes and mild fall weather, though lodging can run higher\n\nIf you tell me where you're starting from and which weekend you're considering, I can narrow this to a specific destination, check drive times, and build a day-by-day plan with lodging suggestions."
+                }
+              ]
+            }
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "files": null,
+          "sources": null,
+          "embeds": null,
+          "statusHistory": null,
+          "error": null,
+          "usage": {
+            "prompt_tokens": 13396,
+            "completion_tokens": 1174,
+            "total_tokens": 29140,
+            "prompt_tokens_details": {
+              "cached_tokens": 20298,
+              "cached_creation_tokens": 6490,
+              "cache_write_tokens": 6490
+            },
+            "input_tokens": 26792,
+            "output_tokens": 2348
+          },
+          "contextSummary": null
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] I want to plan a weekend trip. Before answering, you MUST call the ask_user tool with exactly two questions (destination type and budget), each with 2 options. Do not answer before calling it.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780367357,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780379,
+  "created_at": 1792780367,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0025",
+  "context_usage": {
+    "tokens": 14570,
+    "estimated_tokens": 14570,
+    "threshold": 80000,
+    "percent": 18,
+    "source": "estimated"
+  }
+}

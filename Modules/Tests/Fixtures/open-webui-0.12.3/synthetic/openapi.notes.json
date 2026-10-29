@@ -1,0 +1,45 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "[theseus-test] Notes", "version": "1.0.0", "description": "A tiny notes server"},
+  "paths": {
+    "/notes": {
+      "get": {
+        "operationId": "list_notes",
+        "summary": "List notes",
+        "parameters": [
+          {"name": "tag", "in": "query", "required": false, "schema": {"type": "string", "enum": ["work", "home"]}},
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer", "description": "How many notes"}}
+        ]
+      },
+      "post": {
+        "operationId": "add_note",
+        "description": "Add a note",
+        "requestBody": {"content": {"application/json": {"schema": {"$ref": "#/components/schemas/NewNote"}}}}
+      }
+    },
+    "/notes/{note_id}": {
+      "parameters": [{"name": "note_id", "in": "path", "required": true, "schema": {"type": "string"}}],
+      "get": {"operationId": "get_note", "summary": "Get one note"},
+      "patch": {
+        "operationId": "update_note",
+        "parameters": [{"name": "note_id", "in": "path", "required": true, "schema": {"type": "string", "description": "The note to change"}}],
+        "requestBody": {"content": {"application/json": {"schema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}}}}
+      },
+      "x-internal": {"operationId": "ignored"}
+    },
+    "/health": {"get": {"summary": "No operationId, so no tool"}}
+  },
+  "components": {
+    "schemas": {
+      "NewNote": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": {"type": "string", "description": "The note"},
+          "tags": {"type": "array", "items": {"$ref": "#/components/schemas/Tag"}}
+        }
+      },
+      "Tag": {"type": "string", "enum": ["work", "home"]}
+    }
+  }
+}

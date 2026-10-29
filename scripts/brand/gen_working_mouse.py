@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+"""Generates DesignSystem's working-mouse frames (#185) from the scenes in working_mouse_scenes.py.
+
+Usage: scripts/brand/gen_working_mouse.py [--format rle|rows] [--output PATH]
+
+Every scene (one per kind of work, the table in #185 and brand.md §3) is drawn at both sizes, large
+(64x30 px) and compact (34x14 px), frame by frame, and written to
+Modules/Sources/DesignSystem/WorkingMouseFrames.generated.swift. Never hand-edit the output: change the
+drawings in working_mouse_scenes.py (or the brand grids in sprites.json) and run this again. The output
+is deterministic: the same inputs give the same bytes.
+
+Storage (ADR 0146): each frame is one string literal, run-length encoded row by row: a glyph followed by
+its repeat count when that's more than 1 (`.12K3W`), rows separated by `/`, trailing transparency
+dropped. `WorkingMouse` decodes a scene's frames on first use. `--format rows` writes plain rows instead
+(one string per row, as PixelMouseSprites.generated.swift does); it exists to re-measure the decision.
+"""
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+sys.dont_write_bytecode = True  # no __pycache__ in the repo
+sys.path.insert(0, str(HERE))
+
+import gen_sprites  # noqa: E402
+import working_mouse_scenes as scenes  # noqa: E402
+
+OUTPUT = ROOT / "Modules/Sources/DesignSystem/WorkingMouseFrames.generated.swift"
+SIZES = {"large": scenes.LARGE, "compact": scenes.COMPACT}
+# The sprite palette lives in PixelMouseSprites.generated.swift; these are the colours the scenes add.
+# `v` and `V` are the accent's light and dark values and resolve at runtime (AccentChoice, #179); `n` and
+# `N` are the same verdigris on scenery, fixed.
+ACCENT_GLYPHS = ("v", "V")
+
+
+def rle_row(row: str) -> str:
+    row = row.rstrip(".")
+    out: list[str] = []
+    i = 0
+    while i < len(row):
+        j = i
+        while j < len(row) and row[j] == row[i]:
+            j += 1
+        count = j - i
+        out.append(row[i] + (str(count) if count > 1 else ""))
+        i = j
+    return "".join(out)
+
+
+def rle_frame(rows: list[str]) -> str:
+    encoded = [rle_row(r) for r in rows]
+    while encoded and encoded[-1] == "":
+        encoded.pop()
+    return "/".join(encoded)
+
+
+def decode(encoded: str, width: int, height: int) -> list[str]:
+    """The inverse of rle_frame, used to check every frame round-trips."""
+    rows = []
+    for part in encoded.split("/") if encoded else []:
+        row = []
+        for glyph, count in re.findall(r"([A-Za-z.])(\d*)", part):
+            row.append(glyph * (int(count) if count else 1))
+        rows.append("".join(row).ljust(width, "."))
+    rows += ["." * width] * (height - len(rows))
+    return rows
+
+
+def swift_doc(text: str) -> str:
+    return text.replace("`", "'")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--format", choices=["rle", "rows"], default="rle")
+    parser.add_argument("--output", type=Path, default=OUTPUT)
+    args = parser.parse_args()
+
+    palette = scenes.PALETTE
+    for glyph, colour in palette.items():
+        if len(glyph) != 1 or glyph == "." or not re.fullmatch(r"#[0-9A-Fa-f]{6}", colour):
+            raise SystemExit(f"bad palette entry {glyph!r}: {colour!r}")
+    if scenes.INK != gen_sprites.INK_GLYPH:
+        raise SystemExit(f"the scenes' ink glyph {scenes.INK!r} isn't the sprite palette's {gen_sprites.INK_GLYPH!r}")
+    sprite_glyphs = set(gen_sprites.with_ink(scenes._DATA["palette"]))
+    clash = sprite_glyphs & set(scenes.SCENE_PALETTE)
+    if clash:
+        raise SystemExit(f"scene colours reuse sprite glyphs: {sorted(clash)}")
+
+    data: dict[str, dict[str, list[list[str]]]] = {}
+    total_frames = 0
+    for name, spec in scenes.SCENES.items():
+        data[name] = {}
+        for size, (w, h) in SIZES.items():
+            frames = scenes.frames(name, size)
+            still = spec["still"][0 if size == "large" else 1]
+            if not 0 <= still < len(frames):
+                raise SystemExit(f"{name} {size}: still frame {still} out of range")
+            for index, rows in enumerate(frames):
+                if len(rows) != h or any(len(r) != w for r in rows):
+                    raise SystemExit(f"{name} {size} frame {index} isn't {w}x{h}")
+                unknown = set("".join(rows)) - set(palette) - {"."}
+                if unknown:
+                    raise SystemExit(f"{name} {size} frame {index} uses glyphs outside the palette: {sorted(unknown)}")
+                if all(set(r) == {"."} for r in rows):
+                    raise SystemExit(f"{name} {size} frame {index} is empty")
+                if decode(rle_frame(rows), w, h) != rows:
+                    raise SystemExit(f"{name} {size} frame {index} doesn't round-trip")
+            data[name][size] = frames
+            total_frames += len(frames)
+
+    out: list[str] = [
+        "// GENERATED by scripts/brand/gen_working_mouse.py from scripts/brand/working_mouse_scenes.py",
+        "// and scripts/brand/sprites.json. Do not edit (#185, ADR 0146).",
+        "",
+        "extension WorkingMouse {",
+        "    /// One scene per kind of work (#185, brand.md §3), each drawn at both sizes.",
+        "    public enum Scene: String, CaseIterable, Sendable, Identifiable {",
+    ]
+    for name, spec in scenes.SCENES.items():
+        out.append(f"        /// {swift_doc(spec['purpose'])}")
+        out.append(f"        case {name}")
+    out += [
+        "",
+        "        public var id: String { rawValue }",
+        "    }",
+        "",
+        "    /// The colours the scenes add to the sprite palette (`PixelMouse.palette`). `v` and `V` aren't",
+        "    /// here: they're the accent's light and dark values and follow `AccentChoice` (#179). `n` and",
+        "    /// `N` are the same verdigris on scenery (hills, book spines, folder labels), which stays fixed.",
+        "    nonisolated static let scenePalette: [Character: RGBA] = [",
+    ]
+    for glyph, colour in scenes.SCENE_PALETTE.items():
+        if glyph in ACCENT_GLYPHS:
+            continue
+        out.append(f'        "{glyph}": RGBA(hex: 0x{colour[1:].upper()}),')
+    out += [
+        "    ]",
+        "",
+        "    /// The frame Reduce Motion holds, per scene and size.",
+        "    nonisolated static func stillFrame(of scene: Scene, size: Size) -> Int {",
+        "        switch (scene, size) {",
+    ]
+    for name, spec in scenes.SCENES.items():
+        out.append(f"        case (.{name}, .large): {spec['still'][0]}")
+        out.append(f"        case (.{name}, .compact): {spec['still'][1]}")
+    out += ["        }", "    }", ""]
+
+    if args.format == "rle":
+        out += [
+            "    /// Every frame of `scene` at `size`, run-length encoded: a glyph and its count when it's more",
+            "    /// than 1, rows separated by `/`, trailing transparency dropped. `.` is transparent.",
+            "    nonisolated static func encodedFrames(of scene: Scene, size: Size) -> [String] {",
+            "        switch (scene, size) {",
+        ]
+        for name in scenes.SCENES:
+            for size in SIZES:
+                out.append(f"        case (.{name}, .{size}): [")
+                for rows in data[name][size]:
+                    out.append(f'            "{rle_frame(rows)}",')
+                out.append("        ]")
+        out += ["        }", "    }", "}", ""]
+    else:
+        out += [
+            "    /// Every frame of `scene` at `size`, row by row. `.` is transparent.",
+            "    nonisolated static func frameRows(of scene: Scene, size: Size) -> [[String]] {",
+            "        switch (scene, size) {",
+        ]
+        for name in scenes.SCENES:
+            for size in SIZES:
+                out.append(f"        case (.{name}, .{size}): [")
+                for rows in data[name][size]:
+                    out.append("            [")
+                    for row in rows:
+                        out.append(f'                "{row}",')
+                    out.append("            ],")
+                out.append("        ]")
+        out += ["        }", "    }", "}", ""]
+
+    text = "\n".join(out)
+    args.output.write_text(text, encoding="utf-8")
+    shown = args.output.relative_to(ROOT) if args.output.is_relative_to(ROOT) else args.output
+    print(f"wrote {shown} ({len(scenes.SCENES)} scenes, {total_frames} frames, {len(text.encode())} bytes, {args.format})")
+
+
+if __name__ == "__main__":
+    main()

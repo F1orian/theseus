@@ -1,0 +1,311 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Sun Icon SVG",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Sun Icon SVG",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0013",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0014": {
+          "id": "00000000-0000-4000-8000-0000000e0014",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0015"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Build a small single-file HTML page titled \"Tip Calculator\" (use a <title> tag) with an input for the bill, a slider for the tip percentage and the computed total. Inline CSS and JS only, no external resources. Reply with one short sentence, then the whole page in one fenced html code block.",
+          "timestamp": 1792799625,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0015": {
+          "id": "00000000-0000-4000-8000-0000000e0015",
+          "parentId": "00000000-0000-4000-8000-0000000e0014",
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0016"
+          ],
+          "role": "assistant",
+          "content": "Here's a single-file tip calculator with inline CSS and JS.\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Tip Calculator</title>\n<style>\n  body {\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    background: #f3f4f6;\n    margin: 0;\n    min-height: 100vh;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    color: #111827;\n  }\n  .card {\n    background: #fff;\n    width: 100%;\n    max-width: 360px;\n    padding: 24px;\n    border-radius: 12px;\n    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);\n    box-sizing: border-box;\n  }\n  h1 {\n    font-size: 1.4rem;\n    margin: 0 0 20px;\n  }\n  label {\n    display: block;\n    font-weight: 600;\n    margin-bottom: 6px;\n  }\n  .field {\n    margin-bottom: 20px;\n  }\n  input[type=\"number\"] {\n    width: 100%;\n    padding: 10px 12px;\n    font-size: 1rem;\n    border: 1px solid #d1d5db;\n    border-radius: 8px;\n    box-sizing: border-box;\n  }\n  input[type=\"number\"]:focus {\n    outline: 2px solid #2563eb;\n    border-color: transparent;\n  }\n  .slider-row {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n  }\n  input[type=\"range\"] {\n    flex: 1;\n  }\n  #tipPercentLabel {\n    min-width: 48px;\n    text-align: right;\n    font-variant-numeric: tabular-nums;\n    font-weight: 600;\n  }\n  .results {\n    border-top: 1px solid #e5e7eb;\n    padding-top: 16px;\n  }\n  .row {\n    display: flex;\n    justify-content: space-between;\n    margin-bottom: 8px;\n    font-variant-numeric: tabular-nums;\n  }\n  .row.total {\n    font-size: 1.25rem;\n    font-weight: 700;\n    margin-top: 12px;\n  }\n  .error {\n    color: #b91c1c;\n    font-size: 0.9rem;\n    min-height: 1.2em;\n    margin-top: 4px;\n  }\n</style>\n</head>\n<body>\n  <main class=\"card\">\n    <h1>Tip Calculator</h1>\n\n    <div class=\"field\">\n      <label for=\"bill\">Bill amount</label>\n      <input type=\"number\" id=\"bill\" min=\"0\" step=\"0.01\" placeholder=\"0.00\" inputmode=\"decimal\">\n      <div class=\"error\" id=\"billError\"></div>\n    </div>\n\n    <div class=\"field\">\n      <label for=\"tip\">Tip percentage</label>\n      <div class=\"slider-row\">\n        <input type=\"range\" id=\"tip\" min=\"0\" max=\"50\" step=\"1\" value=\"15\">\n        <span id=\"tipPercentLabel\">15%</span>\n      </div>\n    </div>\n\n    <div class=\"results\">\n      <div class=\"row\">\n        <span>Tip</span>\n        <span id=\"tipAmount\">$0.00</span>\n      </div>\n      <div class=\"row total\">\n        <span>Total</span>\n        <span id=\"total\">$0.00</span>\n      </div>\n    </div>\n  </main>\n\n  <script>\n    const billInput = document.getElementById(\"bill\");\n    const tipSlider = document.getElementById(\"tip\");\n    const tipPercentLabel = document.getElementById(\"tipPercentLabel\");\n    const tipAmountEl = document.getElementById(\"tipAmount\");\n    const totalEl = document.getElementById(\"total\");\n    const billError = document.getElementById(\"billError\");\n\n    const formatCurrency = (value) =>\n      new Intl.NumberFormat(undefined, { style: \"currency\", currency: \"USD\" }).format(value);\n\n    function update() {\n      const percent = Number(tipSlider.value);\n      tipPercentLabel.textContent = percent + \"%\";\n\n      const raw = billInput.value.trim();\n      const bill = parseFloat(raw);\n\n      if (raw === \"\" || Number.isNaN(bill)) {\n        billError.textContent = \"\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      if (bill < 0) {\n        billError.textContent = \"Bill cannot be negative.\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      billError.textContent = \"\";\n      const tip = bill * (percent / 100);\n      const total = bill + tip;\n\n      tipAmountEl.textContent = formatCurrency(tip);\n      totalEl.textContent = formatCurrency(total);\n    }\n\n    billInput.addEventListener(\"input\", update);\n    tipSlider.addEventListener(\"input\", update);\n    update();\n  </script>\n</body>\n</html>\n```",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792799625,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0017"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000001",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Here's a single-file tip calculator with inline CSS and JS.\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Tip Calculator</title>\n<style>\n  body {\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    background: #f3f4f6;\n    margin: 0;\n    min-height: 100vh;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    color: #111827;\n  }\n  .card {\n    background: #fff;\n    width: 100%;\n    max-width: 360px;\n    padding: 24px;\n    border-radius: 12px;\n    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);\n    box-sizing: border-box;\n  }\n  h1 {\n    font-size: 1.4rem;\n    margin: 0 0 20px;\n  }\n  label {\n    display: block;\n    font-weight: 600;\n    margin-bottom: 6px;\n  }\n  .field {\n    margin-bottom: 20px;\n  }\n  input[type=\"number\"] {\n    width: 100%;\n    padding: 10px 12px;\n    font-size: 1rem;\n    border: 1px solid #d1d5db;\n    border-radius: 8px;\n    box-sizing: border-box;\n  }\n  input[type=\"number\"]:focus {\n    outline: 2px solid #2563eb;\n    border-color: transparent;\n  }\n  .slider-row {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n  }\n  input[type=\"range\"] {\n    flex: 1;\n  }\n  #tipPercentLabel {\n    min-width: 48px;\n    text-align: right;\n    font-variant-numeric: tabular-nums;\n    font-weight: 600;\n  }\n  .results {\n    border-top: 1px solid #e5e7eb;\n    padding-top: 16px;\n  }\n  .row {\n    display: flex;\n    justify-content: space-between;\n    margin-bottom: 8px;\n    font-variant-numeric: tabular-nums;\n  }\n  .row.total {\n    font-size: 1.25rem;\n    font-weight: 700;\n    margin-top: 12px;\n  }\n  .error {\n    color: #b91c1c;\n    font-size: 0.9rem;\n    min-height: 1.2em;\n    margin-top: 4px;\n  }\n</style>\n</head>\n<body>\n  <main class=\"card\">\n    <h1>Tip Calculator</h1>\n\n    <div class=\"field\">\n      <label for=\"bill\">Bill amount</label>\n      <input type=\"number\" id=\"bill\" min=\"0\" step=\"0.01\" placeholder=\"0.00\" inputmode=\"decimal\">\n      <div class=\"error\" id=\"billError\"></div>\n    </div>\n\n    <div class=\"field\">\n      <label for=\"tip\">Tip percentage</label>\n      <div class=\"slider-row\">\n        <input type=\"range\" id=\"tip\" min=\"0\" max=\"50\" step=\"1\" value=\"15\">\n        <span id=\"tipPercentLabel\">15%</span>\n      </div>\n    </div>\n\n    <div class=\"results\">\n      <div class=\"row\">\n        <span>Tip</span>\n        <span id=\"tipAmount\">$0.00</span>\n      </div>\n      <div class=\"row total\">\n        <span>Total</span>\n        <span id=\"total\">$0.00</span>\n      </div>\n    </div>\n  </main>\n\n  <script>\n    const billInput = document.getElementById(\"bill\");\n    const tipSlider = document.getElementById(\"tip\");\n    const tipPercentLabel = document.getElementById(\"tipPercentLabel\");\n    const tipAmountEl = document.getElementById(\"tipAmount\");\n    const totalEl = document.getElementById(\"total\");\n    const billError = document.getElementById(\"billError\");\n\n    const formatCurrency = (value) =>\n      new Intl.NumberFormat(undefined, { style: \"currency\", currency: \"USD\" }).format(value);\n\n    function update() {\n      const percent = Number(tipSlider.value);\n      tipPercentLabel.textContent = percent + \"%\";\n\n      const raw = billInput.value.trim();\n      const bill = parseFloat(raw);\n\n      if (raw === \"\" || Number.isNaN(bill)) {\n        billError.textContent = \"\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      if (bill < 0) {\n        billError.textContent = \"Bill cannot be negative.\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      billError.textContent = \"\";\n      const tip = bill * (percent / 100);\n      const total = bill + tip;\n\n      tipAmountEl.textContent = formatCurrency(tip);\n      totalEl.textContent = formatCurrency(total);\n    }\n\n    billInput.addEventListener(\"input\", update);\n    tipSlider.addEventListener(\"input\", update);\n    update();\n  </script>\n</body>\n</html>\n```"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12853,
+            "completion_tokens": 1840,
+            "total_tokens": 29386,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cached_creation_tokens": 25702,
+              "cache_write_tokens": 25702
+            },
+            "input_tokens": 25706,
+            "output_tokens": 3680
+          },
+          "followUps": [
+            "Add a split-between-people option that shows each person's share of the total.",
+            "Make the page look nicer on mobile: bigger tap targets, a larger total, and a dark mode toggle.",
+            "Show the tip percentage value next to the slider so it's clear what's selected.",
+            "Add preset tip buttons (15%, 18%, 20%) that set the slider with one click."
+          ]
+        },
+        "00000000-0000-4000-8000-0000000e0016": {
+          "id": "00000000-0000-4000-8000-0000000e0016",
+          "parentId": "00000000-0000-4000-8000-0000000e0015",
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0018"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Make it pink: change the colour scheme of the Tip Calculator to pink. Keep the same <title>. Reply with one short sentence, then the whole updated page in one fenced html code block.",
+          "timestamp": 1792799635,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0018": {
+          "id": "00000000-0000-4000-8000-0000000e0018",
+          "parentId": "00000000-0000-4000-8000-0000000e0016",
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0019"
+          ],
+          "role": "assistant",
+          "content": "Here's the Tip Calculator recolored in pink, with the same title.\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Tip Calculator</title>\n<style>\n  body {\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    background: #fdf2f8;\n    margin: 0;\n    min-height: 100vh;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    color: #831843;\n  }\n  .card {\n    background: #fff;\n    width: 100%;\n    max-width: 360px;\n    padding: 24px;\n    border-radius: 12px;\n    box-shadow: 0 4px 16px rgba(219, 39, 119, 0.15);\n    border-top: 4px solid #ec4899;\n    box-sizing: border-box;\n  }\n  h1 {\n    font-size: 1.4rem;\n    margin: 0 0 20px;\n    color: #be185d;\n  }\n  label {\n    display: block;\n    font-weight: 600;\n    margin-bottom: 6px;\n    color: #9d174d;\n  }\n  .field {\n    margin-bottom: 20px;\n  }\n  input[type=\"number\"] {\n    width: 100%;\n    padding: 10px 12px;\n    font-size: 1rem;\n    border: 1px solid #f9a8d4;\n    border-radius: 8px;\n    background: #fff;\n    color: #831843;\n    box-sizing: border-box;\n  }\n  input[type=\"number\"]:focus {\n    outline: 2px solid #ec4899;\n    border-color: transparent;\n  }\n  .slider-row {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n  }\n  input[type=\"range\"] {\n    flex: 1;\n    accent-color: #ec4899;\n  }\n  #tipPercentLabel {\n    min-width: 48px;\n    text-align: right;\n    font-variant-numeric: tabular-nums;\n    font-weight: 600;\n    color: #be185d;\n  }\n  .results {\n    border-top: 1px solid #fbcfe8;\n    padding-top: 16px;\n  }\n  .row {\n    display: flex;\n    justify-content: space-between;\n    margin-bottom: 8px;\n    font-variant-numeric: tabular-nums;\n  }\n  .row.total {\n    font-size: 1.25rem;\n    font-weight: 700;\n    margin-top: 12px;\n    color: #db2777;\n  }\n  .error {\n    color: #be123c;\n    font-size: 0.9rem;\n    min-height: 1.2em;\n    margin-top: 4px;\n  }\n</style>\n</head>\n<body>\n  <main class=\"card\">\n    <h1>Tip Calculator</h1>\n\n    <div class=\"field\">\n      <label for=\"bill\">Bill amount</label>\n      <input type=\"number\" id=\"bill\" min=\"0\" step=\"0.01\" placeholder=\"0.00\" inputmode=\"decimal\">\n      <div class=\"error\" id=\"billError\"></div>\n    </div>\n\n    <div class=\"field\">\n      <label for=\"tip\">Tip percentage</label>\n      <div class=\"slider-row\">\n        <input type=\"range\" id=\"tip\" min=\"0\" max=\"50\" step=\"1\" value=\"15\">\n        <span id=\"tipPercentLabel\">15%</span>\n      </div>\n    </div>\n\n    <div class=\"results\">\n      <div class=\"row\">\n        <span>Tip</span>\n        <span id=\"tipAmount\">$0.00</span>\n      </div>\n      <div class=\"row total\">\n        <span>Total</span>\n        <span id=\"total\">$0.00</span>\n      </div>\n    </div>\n  </main>\n\n  <script>\n    const billInput = document.getElementById(\"bill\");\n    const tipSlider = document.getElementById(\"tip\");\n    const tipPercentLabel = document.getElementById(\"tipPercentLabel\");\n    const tipAmountEl = document.getElementById(\"tipAmount\");\n    const totalEl = document.getElementById(\"total\");\n    const billError = document.getElementById(\"billError\");\n\n    const formatCurrency = (value) =>\n      new Intl.NumberFormat(undefined, { style: \"currency\", currency: \"USD\" }).format(value);\n\n    function update() {\n      const percent = Number(tipSlider.value);\n      tipPercentLabel.textContent = percent + \"%\";\n\n      const raw = billInput.value.trim();\n      const bill = parseFloat(raw);\n\n      if (raw === \"\" || Number.isNaN(bill)) {\n        billError.textContent = \"\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      if (bill < 0) {\n        billError.textContent = \"Bill cannot be negative.\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      billError.textContent = \"\";\n      const tip = bill * (percent / 100);\n      const total = bill + tip;\n\n      tipAmountEl.textContent = formatCurrency(tip);\n      totalEl.textContent = formatCurrency(total);\n    }\n\n    billInput.addEventListener(\"input\", update);\n    tipSlider.addEventListener(\"input\", update);\n    update();\n  </script>\n</body>\n</html>\n```",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "modelIdx": 0,
+          "timestamp": 1792799635,
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0020"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000002",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Here's the Tip Calculator recolored in pink, with the same title.\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Tip Calculator</title>\n<style>\n  body {\n    font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif;\n    background: #fdf2f8;\n    margin: 0;\n    min-height: 100vh;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    color: #831843;\n  }\n  .card {\n    background: #fff;\n    width: 100%;\n    max-width: 360px;\n    padding: 24px;\n    border-radius: 12px;\n    box-shadow: 0 4px 16px rgba(219, 39, 119, 0.15);\n    border-top: 4px solid #ec4899;\n    box-sizing: border-box;\n  }\n  h1 {\n    font-size: 1.4rem;\n    margin: 0 0 20px;\n    color: #be185d;\n  }\n  label {\n    display: block;\n    font-weight: 600;\n    margin-bottom: 6px;\n    color: #9d174d;\n  }\n  .field {\n    margin-bottom: 20px;\n  }\n  input[type=\"number\"] {\n    width: 100%;\n    padding: 10px 12px;\n    font-size: 1rem;\n    border: 1px solid #f9a8d4;\n    border-radius: 8px;\n    background: #fff;\n    color: #831843;\n    box-sizing: border-box;\n  }\n  input[type=\"number\"]:focus {\n    outline: 2px solid #ec4899;\n    border-color: transparent;\n  }\n  .slider-row {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n  }\n  input[type=\"range\"] {\n    flex: 1;\n    accent-color: #ec4899;\n  }\n  #tipPercentLabel {\n    min-width: 48px;\n    text-align: right;\n    font-variant-numeric: tabular-nums;\n    font-weight: 600;\n    color: #be185d;\n  }\n  .results {\n    border-top: 1px solid #fbcfe8;\n    padding-top: 16px;\n  }\n  .row {\n    display: flex;\n    justify-content: space-between;\n    margin-bottom: 8px;\n    font-variant-numeric: tabular-nums;\n  }\n  .row.total {\n    font-size: 1.25rem;\n    font-weight: 700;\n    margin-top: 12px;\n    color: #db2777;\n  }\n  .error {\n    color: #be123c;\n    font-size: 0.9rem;\n    min-height: 1.2em;\n    margin-top: 4px;\n  }\n</style>\n</head>\n<body>\n  <main class=\"card\">\n    <h1>Tip Calculator</h1>\n\n    <div class=\"field\">\n      <label for=\"bill\">Bill amount</label>\n      <input type=\"number\" id=\"bill\" min=\"0\" step=\"0.01\" placeholder=\"0.00\" inputmode=\"decimal\">\n      <div class=\"error\" id=\"billError\"></div>\n    </div>\n\n    <div class=\"field\">\n      <label for=\"tip\">Tip percentage</label>\n      <div class=\"slider-row\">\n        <input type=\"range\" id=\"tip\" min=\"0\" max=\"50\" step=\"1\" value=\"15\">\n        <span id=\"tipPercentLabel\">15%</span>\n      </div>\n    </div>\n\n    <div class=\"results\">\n      <div class=\"row\">\n        <span>Tip</span>\n        <span id=\"tipAmount\">$0.00</span>\n      </div>\n      <div class=\"row total\">\n        <span>Total</span>\n        <span id=\"total\">$0.00</span>\n      </div>\n    </div>\n  </main>\n\n  <script>\n    const billInput = document.getElementById(\"bill\");\n    const tipSlider = document.getElementById(\"tip\");\n    const tipPercentLabel = document.getElementById(\"tipPercentLabel\");\n    const tipAmountEl = document.getElementById(\"tipAmount\");\n    const totalEl = document.getElementById(\"total\");\n    const billError = document.getElementById(\"billError\");\n\n    const formatCurrency = (value) =>\n      new Intl.NumberFormat(undefined, { style: \"currency\", currency: \"USD\" }).format(value);\n\n    function update() {\n      const percent = Number(tipSlider.value);\n      tipPercentLabel.textContent = percent + \"%\";\n\n      const raw = billInput.value.trim();\n      const bill = parseFloat(raw);\n\n      if (raw === \"\" || Number.isNaN(bill)) {\n        billError.textContent = \"\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      if (bill < 0) {\n        billError.textContent = \"Bill cannot be negative.\";\n        tipAmountEl.textContent = formatCurrency(0);\n        totalEl.textContent = formatCurrency(0);\n        return;\n      }\n\n      billError.textContent = \"\";\n      const tip = bill * (percent / 100);\n      const total = bill + tip;\n\n      tipAmountEl.textContent = formatCurrency(tip);\n      totalEl.textContent = formatCurrency(total);\n    }\n\n    billInput.addEventListener(\"input\", update);\n    tipSlider.addEventListener(\"input\", update);\n    update();\n  </script>\n</body>\n</html>\n```"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 14644,
+            "completion_tokens": 1803,
+            "total_tokens": 32894,
+            "prompt_tokens_details": {
+              "cached_tokens": 20848,
+              "cached_creation_tokens": 8432,
+              "cache_write_tokens": 8432
+            },
+            "input_tokens": 29288,
+            "output_tokens": 3606
+          },
+          "followUps": [
+            "Now add a split-between-people field that shows each person's share of the total.",
+            "Make the pink a bit softer and add a subtle shadow to the card.",
+            "Show the current tip percentage as a number next to the slider.",
+            "Add a dark mode version of the pink theme.",
+            "Round the total up to the nearest whole currency unit and add a note saying so."
+          ]
+        },
+        "00000000-0000-4000-8000-0000000e0019": {
+          "id": "00000000-0000-4000-8000-0000000e0019",
+          "parentId": "00000000-0000-4000-8000-0000000e0018",
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0021"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Draw a simple SVG icon of a sun (a circle with 8 rays), 120x120, with a <title>Sun icon</title>. Reply with one sentence and the SVG in a fenced svg code block.",
+          "timestamp": 1792799644,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0021": {
+          "id": "00000000-0000-4000-8000-0000000e0021",
+          "parentId": "00000000-0000-4000-8000-0000000e0019",
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0022"
+          ],
+          "role": "assistant",
+          "content": "A simple 120×120 sun icon with a circle and eight rays.\n\n```svg\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\">\n  <title>Sun icon</title>\n  <circle cx=\"60\" cy=\"60\" r=\"22\" fill=\"#facc15\"/>\n  <g stroke=\"#facc15\" stroke-width=\"6\" stroke-linecap=\"round\">\n    <line x1=\"94\" y1=\"60\" x2=\"110\" y2=\"60\"/>\n    <line x1=\"84.04\" y1=\"84.04\" x2=\"95.36\" y2=\"95.36\"/>\n    <line x1=\"60\" y1=\"94\" x2=\"60\" y2=\"110\"/>\n    <line x1=\"35.96\" y1=\"84.04\" x2=\"24.64\" y2=\"95.36\"/>\n    <line x1=\"26\" y1=\"60\" x2=\"10\" y2=\"60\"/>\n    <line x1=\"35.96\" y1=\"35.96\" x2=\"24.64\" y2=\"24.64\"/>\n    <line x1=\"60\" y1=\"26\" x2=\"60\" y2=\"10\"/>\n    <line x1=\"84.04\" y1=\"35.96\" x2=\"95.36\" y2=\"24.64\"/>\n  </g>\n</svg>\n```",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "modelIdx": 0,
+          "timestamp": 1792799644,
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0023"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000003",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "A simple 120×120 sun icon with a circle and eight rays.\n\n```svg\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\">\n  <title>Sun icon</title>\n  <circle cx=\"60\" cy=\"60\" r=\"22\" fill=\"#facc15\"/>\n  <g stroke=\"#facc15\" stroke-width=\"6\" stroke-linecap=\"round\">\n    <line x1=\"94\" y1=\"60\" x2=\"110\" y2=\"60\"/>\n    <line x1=\"84.04\" y1=\"84.04\" x2=\"95.36\" y2=\"95.36\"/>\n    <line x1=\"60\" y1=\"94\" x2=\"60\" y2=\"110\"/>\n    <line x1=\"35.96\" y1=\"84.04\" x2=\"24.64\" y2=\"95.36\"/>\n    <line x1=\"26\" y1=\"60\" x2=\"10\" y2=\"60\"/>\n    <line x1=\"35.96\" y1=\"35.96\" x2=\"24.64\" y2=\"24.64\"/>\n    <line x1=\"60\" y1=\"26\" x2=\"60\" y2=\"10\"/>\n    <line x1=\"84.04\" y1=\"35.96\" x2=\"95.36\" y2=\"24.64\"/>\n  </g>\n</svg>\n```"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 16524,
+            "completion_tokens": 727,
+            "total_tokens": 34502,
+            "prompt_tokens_details": {
+              "cached_tokens": 29280,
+              "cached_creation_tokens": 3760,
+              "cache_write_tokens": 3760
+            },
+            "input_tokens": 33048,
+            "output_tokens": 1454
+          },
+          "followUps": [
+            "Make the sun pink to match the Tip Calculator.",
+            "Add a slow rotation animation to the sun rays.",
+            "Now draw a matching moon icon, same 120x120 size and <title> format.",
+            "Give me the sun with a smaller circle and longer rays.",
+            "Put the sun icon inside the Tip Calculator page header."
+          ]
+        },
+        "00000000-0000-4000-8000-0000000e0022": {
+          "id": "00000000-0000-4000-8000-0000000e0022",
+          "parentId": "00000000-0000-4000-8000-0000000e0021",
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0013"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Show the steps of making tea as a mermaid flowchart (graph TD, 5 nodes) in a fenced mermaid code block, after one short sentence.",
+          "timestamp": 1792799652,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0013": {
+          "id": "00000000-0000-4000-8000-0000000e0013",
+          "parentId": "00000000-0000-4000-8000-0000000e0022",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "Here's a five-step tea-making flowchart.\n\n```mermaid\ngraph TD\n    A[Boil water] --> B[Warm the teapot]\n    B --> C[Add tea leaves or bag]\n    C --> D[Pour water and steep]\n    D --> E[Strain and serve]\n```",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "modelIdx": 0,
+          "timestamp": 1792799652,
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0024"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000004",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Here's a five-step tea-making flowchart.\n\n```mermaid\ngraph TD\n    A[Boil water] --> B[Warm the teapot]\n    B --> C[Add tea leaves or bag]\n    C --> D[Pour water and steep]\n    D --> E[Strain and serve]\n```"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 16982,
+            "completion_tokens": 99,
+            "total_tokens": 34162,
+            "prompt_tokens_details": {
+              "cached_tokens": 33040,
+              "cached_creation_tokens": 916,
+              "cache_write_tokens": 916
+            },
+            "input_tokens": 33964,
+            "output_tokens": 198
+          }
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] Build a small single-file HTML page titled \"Tip Calculator\" (use a <title> tag) with an input for the bill, a slider for the tip percentage and the computed total. Inline CSS and JS only, no external resources. Reply with one short sentence, then the whole page in one fenced html code block.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792799625404,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792799655,
+  "created_at": 1792799625,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0013",
+  "context_usage": {
+    "tokens": 17081,
+    "estimated_tokens": 17081,
+    "threshold": 80000,
+    "percent": 21,
+    "source": "estimated"
+  }
+}

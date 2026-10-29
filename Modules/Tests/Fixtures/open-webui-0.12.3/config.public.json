@@ -1,0 +1,21 @@
+{
+  "status": true,
+  "name": "Open WebUI",
+  "version": "0.12.3",
+  "default_locale": "",
+  "i18n": {},
+  "oauth": {
+    "providers": {},
+    "auto_redirect": false
+  },
+  "features": {
+    "slim": false,
+    "auth": true,
+    "auth_trusted_header": false,
+    "enable_signup_password_confirmation": false,
+    "enable_ldap": false,
+    "enable_signup": false,
+    "enable_login_form": true,
+    "enable_websocket": true
+  }
+}

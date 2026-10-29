@@ -1,0 +1,10 @@
+{
+  "name": "Open WebUI",
+  "version": "0.12.3",
+  "features": {"auth": true, "enable_websocket": true},
+  "audio": {
+    "tts": {"engine": "openai", "voice": "alloy", "split_on": "punctuation"},
+    "stt": {"engine": "openai"},
+    "realtime": {"enabled": false}
+  }
+}

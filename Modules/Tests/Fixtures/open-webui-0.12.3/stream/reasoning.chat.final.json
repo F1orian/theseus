@@ -1,0 +1,126 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Multiplying 17 by 23",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Multiplying 17 by 23",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0057",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0058": {
+          "id": "00000000-0000-4000-8000-0000000e0058",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0057"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Begin your reply with the literal tag <think>, reason briefly inside it, close it with </think>, then give the answer: what is 17 × 23?",
+          "timestamp": 1792780417,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0057": {
+          "id": "00000000-0000-4000-8000-0000000e0057",
+          "parentId": "00000000-0000-4000-8000-0000000e0058",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "17 × 23 = **391**",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780417,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0059"
+          },
+          "output": [
+            {
+              "type": "reasoning",
+              "id": "r_dce815d620d345759a775f29",
+              "status": "completed",
+              "start_tag": "<think>",
+              "end_tag": "</think>",
+              "attributes": {},
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "17 × 23 = 17 × 20 + 17 × 3 = 340 + 51 = 391."
+                }
+              ],
+              "summary": null,
+              "started_at": 1792780424.2842114,
+              "ended_at": 1792780424.370077,
+              "duration": 0
+            },
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000032",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "17 × 23 = **391**"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12805,
+            "completion_tokens": 104,
+            "total_tokens": 25818,
+            "prompt_tokens_details": {
+              "cached_tokens": 20298,
+              "cached_creation_tokens": 5308,
+              "cache_write_tokens": 5308
+            },
+            "input_tokens": 25610,
+            "output_tokens": 208
+          }
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] Begin your reply with the literal tag <think>, reason briefly inside it, close it with </think>, then give the answer: what is 17 × 23?",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780417773,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780424,
+  "created_at": 1792780417,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0057",
+  "context_usage": {
+    "tokens": 12909,
+    "estimated_tokens": 12909,
+    "threshold": 80000,
+    "percent": 16,
+    "source": "estimated"
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Colour Naming Test",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Colour Naming Test",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0036",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0035": {
+          "id": "00000000-0000-4000-8000-0000000e0035",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0036",
+            "00000000-0000-4000-8000-0000000e0037"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Name one colour. Answer with one word.",
+          "timestamp": 1792790323,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0036": {
+          "id": "00000000-0000-4000-8000-0000000e0036",
+          "parentId": "00000000-0000-4000-8000-0000000e0035",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "Blue",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792790323,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0038"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000015",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Blue"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12771,
+            "completion_tokens": 5,
+            "total_tokens": 25552,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cached_creation_tokens": 25538,
+              "cache_write_tokens": 25538
+            },
+            "input_tokens": 25542,
+            "output_tokens": 10
+          },
+          "followUps": [
+            "Name another colour, one word.",
+            "Now name a fruit, one word.",
+            "Why did you pick blue?",
+            "Name a colour in French.",
+            "Give me a colour that isn't in the rainbow."
+          ]
+        },
+        "00000000-0000-4000-8000-0000000e0037": {
+          "id": "00000000-0000-4000-8000-0000000e0037",
+          "parentId": "00000000-0000-4000-8000-0000000e0035",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "Blue",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "modelIdx": 0,
+          "timestamp": 1792790327,
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0039"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000016",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Blue"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12771,
+            "completion_tokens": 5,
+            "total_tokens": 25552,
+            "prompt_tokens_details": {
+              "cached_tokens": 25538,
+              "cached_creation_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "input_tokens": 25542,
+            "output_tokens": 10
+          },
+          "followUps": [
+            "Name another colour. One word.",
+            "Now name one animal. One word.",
+            "Name three colours, comma-separated.",
+            "Why did you pick blue?"
+          ]
+        },
+        "00000000-0000-4000-8000-0000000e0040": {
+          "id": "00000000-0000-4000-8000-0000000e0040",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0034"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Name one fruit. Answer with one word.",
+          "timestamp": 1792790331,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0034": {
+          "id": "00000000-0000-4000-8000-0000000e0034",
+          "parentId": "00000000-0000-4000-8000-0000000e0040",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "Apple",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "modelIdx": 0,
+          "timestamp": 1792790331,
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0041"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000017",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "Apple"
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12772,
+            "completion_tokens": 5,
+            "total_tokens": 25554,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cached_creation_tokens": 25540,
+              "cache_write_tokens": 25540
+            },
+            "input_tokens": 25544,
+            "output_tokens": 10
+          },
+          "followUps": [
+            "Name another fruit, one word.",
+            "Now name a vegetable, one word.",
+            "Name a fruit that starts with B, one word.",
+            "Name three fruits, one word each, comma separated."
+          ]
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] Name one colour. Answer with one word."
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792790323792
+  },
+  "updated_at": 1792790334,
+  "created_at": 1792790323,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0036",
+  "context_usage": null
+}

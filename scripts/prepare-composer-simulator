@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Prepares a simulator for the composer walkthrough (App/UITests/ComposerUITests) and cleans up after it.
+
+Usage:
+  scripts/prepare-composer-simulator <simulator udid>     add a test photo and `[theseus-test] atlas.txt`
+                                                         (Files > On My iPhone) to the simulator
+  scripts/prepare-composer-simulator --cleanup [hours]    delete what the walkthrough left on the test
+                                                         Server (default: the last 3 hours)
+
+Cleanup only touches the .env Account's own data: Chats whose user Messages start with
+`[theseus-test]` *and* carry Attachments, and uploads named `[theseus-test]*` or `Photo *`.
+"""
+import json
+import os
+import plistlib
+import struct
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request
+import zlib
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PREFIX = "[theseus-test]"
+
+
+def env():
+    path = os.path.join(ROOT, ".env")
+    if not os.path.exists(path):
+        sys.exit("prepare-composer-simulator: no .env at repo root")
+    values = {}
+    for line in open(path, encoding="utf-8"):
+        if "=" in line and not line.lstrip().startswith("#"):
+            key, value = line.rstrip("\n").split("=", 1)
+            values[key.strip()] = value.strip().strip("'\"")
+    return values
+
+
+def checkerboard_png(width=1200, height=900, cell=150):
+    rows = []
+    for y in range(height):
+        row = bytearray([0])
+        for x in range(width):
+            row += bytes([0xD9, 0x77, 0x57]) if (x // cell + y // cell) % 2 == 0 else bytes([0x26, 0x26, 0x24])
+        rows.append(bytes(row))
+
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+
+    header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(b"".join(rows))) + chunk(b"IEND", b"")
+
+
+def prepare(udid):
+    with tempfile.TemporaryDirectory() as tmp:
+        png = os.path.join(tmp, "checker.png")
+        heic = os.path.join(tmp, "theseus-checker.heic")
+        open(png, "wb").write(checkerboard_png())
+        subprocess.run(["sips", "-s", "format", "heic", png, "--out", heic], check=True, capture_output=True)
+        subprocess.run(["xcrun", "simctl", "addmedia", udid, heic], check=True, timeout=120)
+    # Files > On My iPhone is the LocalStorage file provider's shared container.
+    subprocess.run(["xcrun", "simctl", "launch", udid, "com.apple.DocumentsApp"], check=False, capture_output=True)
+    time.sleep(4)
+    subprocess.run(["xcrun", "simctl", "terminate", udid, "com.apple.DocumentsApp"], check=False, capture_output=True)
+    groups = os.path.expanduser(f"~/Library/Developer/CoreSimulator/Devices/{udid}/data/Containers/Shared/AppGroup")
+    for group in os.listdir(groups):
+        meta = os.path.join(groups, group, ".com.apple.mobile_container_manager.metadata.plist")
+        try:
+            identifier = plistlib.load(open(meta, "rb")).get("MCMMetadataIdentifier")
+        except (OSError, plistlib.InvalidFileException):
+            continue
+        if identifier == "group.com.apple.FileProvider.LocalStorage":
+            storage = os.path.join(groups, group, "File Provider Storage")
+            os.makedirs(storage, exist_ok=True)
+            with open(os.path.join(storage, f"{PREFIX} atlas.txt"), "w", encoding="utf-8") as handle:
+                handle.write("Theseus walkthrough document.\nThe capital of Atlantis is Poseidonia.\n"
+                             "The Labyrinth of Knossos was built by Daedalus.\n")
+            print(f"prepare-composer-simulator: photo and {PREFIX} atlas.txt added to {udid}")
+            return
+    sys.exit("prepare-composer-simulator: Files' On My iPhone storage not found")
+
+
+def request(base, token, method, path, body=None):
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(base + path, data=data, method=method, headers={
+        "Accept": "application/json", "Content-Type": "application/json",
+        **({"Authorization": f"Bearer {token}"} if token else {}),
+    })
+    with urllib.request.urlopen(req, timeout=30) as response:
+        return json.loads(response.read() or b"null")
+
+
+def cleanup(hours):
+    values = env()
+    base = values["THESEUS_OWUI_URL"].rstrip("/")
+    token = request(base, None, "POST", "/api/v1/auths/signin",
+                    {"email": values["THESEUS_OWUI_EMAIL"], "password": values["THESEUS_OWUI_PASSWORD"]})["token"]
+    since = time.time() - hours * 3600
+    try:
+        for summary in request(base, token, "GET", "/api/v1/chats/?page=1"):
+            if summary.get("updated_at", 0) < since:
+                continue
+            chat = request(base, token, "GET", f"/api/v1/chats/{summary['id']}")
+            messages = ((chat.get("chat") or {}).get("history") or {}).get("messages") or {}
+            ours = any(m.get("role") == "user" and str(m.get("content", "")).startswith(PREFIX) and m.get("files")
+                       for m in messages.values())
+            if ours:
+                request(base, token, "DELETE", f"/api/v1/chats/{summary['id']}")
+                print(f"deleted chat {summary['title']!r}")
+        files = request(base, token, "GET", "/api/v1/files/?page=1")
+        for file in (files.get("items", []) if isinstance(files, dict) else files):
+            name = (file.get("meta") or {}).get("name") or file.get("filename") or ""
+            if file.get("created_at", 0) >= since and (name.startswith(PREFIX) or name.startswith("Photo ")):
+                request(base, token, "DELETE", f"/api/v1/files/{file['id']}")
+                print(f"deleted file {name!r}")
+    finally:
+        request(base, token, "POST", "/api/v1/auths/signout")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) >= 2 and sys.argv[1] == "--cleanup":
+        cleanup(float(sys.argv[2]) if len(sys.argv) > 2 else 3)
+    elif len(sys.argv) == 2:
+        prepare(sys.argv[1])
+    else:
+        sys.exit(__doc__)

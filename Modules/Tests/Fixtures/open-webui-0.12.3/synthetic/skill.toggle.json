@@ -1,0 +1,24 @@
+{
+  "version_id": "meeting-notes-v1",
+  "id": "meeting-notes",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "name": "Meeting notes",
+  "description": "What the meeting-notes skill does.",
+  "meta": {
+    "i18n": null,
+    "tags": []
+  },
+  "is_active": false,
+  "access_grants": [],
+  "updated_at": 1792768702,
+  "created_at": 1792760689,
+  "content": "Summarise the meeting.",
+  "data": {
+    "files": [
+      {
+        "path": "SKILL.md",
+        "content": "Summarise the meeting."
+      }
+    ]
+  }
+}

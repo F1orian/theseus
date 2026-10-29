@@ -1,0 +1,26 @@
+[
+  {
+    "id": "group-legal",
+    "user_id": "00000000-0000-4000-8000-000000000002",
+    "name": "Legal",
+    "description": "Contracts and compliance",
+    "permissions": {},
+    "data": null,
+    "meta": null,
+    "member_count": 3,
+    "created_at": 1792760000,
+    "updated_at": 1792760000
+  },
+  {
+    "id": "group-design",
+    "user_id": "00000000-0000-4000-8000-000000000002",
+    "name": "Design",
+    "description": "",
+    "permissions": {},
+    "data": null,
+    "meta": null,
+    "member_count": 5,
+    "created_at": 1792760000,
+    "updated_at": 1792760000
+  }
+]

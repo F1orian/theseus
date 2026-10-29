@@ -1,0 +1,52 @@
+{
+  "TOOL_SERVER_CONNECTIONS": [
+    {
+      "url": "https://tools.example.com/weather",
+      "path": "openapi.json",
+      "type": "openapi",
+      "auth_type": "bearer",
+      "forward_cookies": true,
+      "headers": {"X-Team": "{{USER_EMAIL}}"},
+      "key": "sk-web-admin-key",
+      "config": {
+        "enable": true,
+        "function_name_filter_list": "get_forecast",
+        "access_grants": [
+          {"principal_type": "group", "principal_id": "g-research", "permission": "read"},
+          {"principal_type": "group", "principal_id": "g-research", "permission": "write"}
+        ]
+      },
+      "info": {"id": "", "name": "Weather", "description": "Forecasts"},
+      "spec_type": "url",
+      "spec": "",
+      "x_future_field": {"kept": [1, 2, 3]}
+    },
+    {
+      "url": "https://mcp.example.com/mcp/",
+      "path": "",
+      "type": "mcp",
+      "auth_type": "oauth_2.1",
+      "forward_cookies": false,
+      "headers": null,
+      "key": "",
+      "config": {"enable": true, "access_grants": [{"principal_type": "user", "principal_id": "*", "permission": "read"}]},
+      "info": {
+        "id": "notion",
+        "name": "Notion",
+        "description": "",
+        "oauth_resource_parameter": "auto",
+        "oauth_client_info": "gAAAAABn-encrypted-client-info"
+      }
+    },
+    {
+      "url": "https://sso-tools.example.com",
+      "path": "/spec.yaml",
+      "type": "openapi",
+      "auth_type": "system_oauth",
+      "forward_cookies": false,
+      "key": "",
+      "config": {"enable": false, "access_grants": []},
+      "info": {"id": "sso-tools", "name": "SSO tools", "description": "Uses the SSO token"}
+    }
+  ]
+}

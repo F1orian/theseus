@@ -1,0 +1,43 @@
+[
+  {
+    "index": 0,
+    "id": "pdf-tools",
+    "name": "pdf-tools",
+    "description": "Fill and split PDF files.",
+    "meta": {},
+    "files": [
+      {
+        "path": "SKILL.md",
+        "size": 72,
+        "encoding": null
+      },
+      {
+        "path": "scripts/fill.py",
+        "size": 14,
+        "encoding": null
+      }
+    ],
+    "id_taken": false,
+    "name_taken": false,
+    "can_replace": false,
+    "expected_version_id": null
+  },
+  {
+    "index": 1,
+    "id": "meeting-notes",
+    "name": "Meeting notes",
+    "description": "",
+    "meta": {},
+    "files": [
+      {
+        "path": "SKILL.md",
+        "size": 22,
+        "encoding": null
+      }
+    ],
+    "id_taken": true,
+    "name_taken": true,
+    "can_replace": true,
+    "expected_version_id": "meeting-notes-v1"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "id": "00000000-0000-4000-8000-000000000520",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "hash": "4441a9cd89572cc266a3912de8b65615e5f89683a719e9b95f52291af3e37201",
+  "filename": "theseus-test-notes.md",
+  "path": "/app/backend/data/uploads/00000000-0000-4000-8000-000000000520_theseus-test-notes.md",
+  "data": {
+    "status": "completed",
+    "content": "# Meal ideas\n\n[theseus-test] Oats, lentils, greens.\n",
+    "error": null
+  },
+  "meta": {
+    "name": "theseus-test-notes.md",
+    "content_type": "text/markdown",
+    "size": 52,
+    "file_hash": "4441a9cd89572cc266a3912de8b65615e5f89683a719e9b95f52291af3e37201",
+    "data": {},
+    "collection_name": "file-00000000-0000-4000-8000-000000000520"
+  },
+  "created_at": 1792789040,
+  "updated_at": 1792789041
+}

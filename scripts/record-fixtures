@@ -1,0 +1,296 @@
+#!/usr/bin/env bash
+# Records scrubbed Open WebUI fixtures for unit tests.
+#
+# Reads THESEUS_OWUI_URL/EMAIL/PASSWORD from the gitignored repo-root .env, calls only read-only
+# (or own-session) endpoints, scrubs tokens, emails, names, user/chat ids and chat titles, and
+# writes to Modules/Tests/Fixtures/open-webui-<server version>/.
+#
+# Usage: scripts/record-fixtures
+# Needs: curl, jq. Skips cleanly (exit 0) when .env is missing or empty.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ENV_FILE="$ROOT/.env"
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "record-fixtures: no .env at repo root; skipping." >&2
+  exit 0
+fi
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+if [[ -z "${THESEUS_OWUI_URL:-}" || -z "${THESEUS_OWUI_EMAIL:-}" || -z "${THESEUS_OWUI_PASSWORD:-}" ]]; then
+  echo "record-fixtures: .env is missing URL/EMAIL/PASSWORD; skipping." >&2
+  exit 0
+fi
+command -v jq >/dev/null || { echo "record-fixtures: jq is required (brew install jq)." >&2; exit 1; }
+
+BASE="${THESEUS_OWUI_URL%/}"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+fetch() { # fetch <out> <path> [token]  — GET, fails on non-2xx
+  local out="$1" path="$2" token="${3:-}"
+  local args=(-sS --fail-with-body -o "$TMP/$out" "$BASE$path")
+  [[ -n "$token" ]] && args+=(-H "Authorization: Bearer $token")
+  curl "${args[@]}"
+}
+
+echo "record-fixtures: recording from $BASE"
+fetch version.json /api/version
+VERSION="$(jq -r .version "$TMP/version.json")"
+OUT="$ROOT/Modules/Tests/Fixtures/open-webui-$VERSION"
+mkdir -p "$OUT"
+
+fetch config.public.json /api/config
+curl -sS -o "$TMP/models.unauthenticated.json" "$BASE/api/models"
+
+jq -n --arg e "$THESEUS_OWUI_EMAIL" --arg p "$THESEUS_OWUI_PASSWORD" '{email:$e, password:$p}' \
+  | curl -sS --fail-with-body -o "$TMP/signin.json" -H 'Content-Type: application/json' \
+      --data-binary @- "$BASE/api/v1/auths/signin"
+TOKEN="$(jq -r '.token // empty' "$TMP/signin.json")"
+[[ -n "$TOKEN" ]] || { echo "record-fixtures: sign-in returned no token (MFA?)." >&2; exit 1; }
+
+fetch config.json /api/config "$TOKEN"
+fetch banners.json /api/v1/configs/banners "$TOKEN"
+fetch auths.json /api/v1/auths/ "$TOKEN"
+fetch models.json /api/models "$TOKEN"
+fetch chats.page-1.json "/api/v1/chats/?page=1" "$TOKEN"
+fetch chats.search.json "/api/v1/chats/search?text=the&page=1" "$TOKEN"
+
+# Chats library mutations (star, rename, delete) on a throwaway, own "[theseus-test]" Chat that is
+# deleted again. Real Chats are never touched.
+api() { # api <method> <out> <path> [json body]
+  local method="$1" out="$2" path="$3" body="${4:-}"
+  local args=(-sS --fail-with-body -X "$method" -o "$TMP/$out" -H "Authorization: Bearer $TOKEN" "$BASE$path")
+  [[ -n "$body" ]] && args+=(-H 'Content-Type: application/json' --data-binary "$body")
+  curl "${args[@]}"
+}
+api POST chat.new.json /api/v1/chats/new \
+  '{"chat":{"title":"[theseus-test] fixture","models":[],"history":{"messages":{},"currentId":null},"messages":[]}}'
+TEST_CHAT_ID="$(jq -r .id "$TMP/chat.new.json")"
+trap 'curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/chats/$TEST_CHAT_ID" || true; rm -rf "$TMP"' EXIT
+api POST chat.pin.json "/api/v1/chats/$TEST_CHAT_ID/pin"
+fetch chats.pinned.json /api/v1/chats/pinned "$TOKEN"
+# Voice (VOICE-06): the TTS engine's voices (empty when the Server has no engine).
+fetch audio.voices.json /api/v1/audio/voices "$TOKEN"
+api POST chat.rename.json "/api/v1/chats/$TEST_CHAT_ID" '{"chat":{"title":"[theseus-test] renamed"}}'
+api DELETE chat.delete.json "/api/v1/chats/$TEST_CHAT_ID"
+trap 'rm -rf "$TMP"' EXIT
+
+# Settings (SET-*): user settings, personal usage, the admin contact, and Shared links on a
+# throwaway "[theseus-test]" Chat that is shared, read back, unshared and deleted again.
+fetch user-settings.json "/api/v1/users/user/settings?raw=true" "$TOKEN"
+# Connectors (CONN-02): read-only list of the tools, tool servers and MCP servers the Account may use.
+fetch tools.json /api/v1/tools/ "$TOKEN"
+fetch users.usage.json /api/v1/users/usage "$TOKEN"
+curl -sS -o "$TMP/admin-details.json" -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/auths/admin/details"
+NOW="$(date +%s)"
+api POST share.chat.new.json /api/v1/chats/new "$(jq -n --argjson now "$NOW" '{chat:{
+  title:"[theseus-test] shared", models:["model"],
+  history:{currentId:"m2", messages:{
+    m1:{id:"m1", parentId:null, childrenIds:["m2"], role:"user", content:"Plan a short walk", timestamp:$now},
+    m2:{id:"m2", parentId:"m1", childrenIds:[], role:"assistant", content:"**Route:** the park loop, about 30 minutes.", model:"model", done:true, timestamp:$now}}},
+  messages:[]}}')"
+SHARE_CHAT_ID="$(jq -r .id "$TMP/share.chat.new.json")"
+trap 'curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/chats/$SHARE_CHAT_ID" || true; rm -rf "$TMP"' EXIT
+api POST chat.share.json "/api/v1/chats/$SHARE_CHAT_ID/share" '{}'
+SHARE_ID="$(jq -r .share_id "$TMP/chat.share.json")"
+fetch chats.shared.json "/api/v1/chats/shared?page=1" "$TOKEN"
+fetch chat.shared-snapshot.json "/api/v1/chats/share/$SHARE_ID" "$TOKEN"
+api DELETE chat.unshare.json "/api/v1/chats/$SHARE_CHAT_ID/share"
+api DELETE share.chat.delete.json "/api/v1/chats/$SHARE_CHAT_ID"
+trap 'rm -rf "$TMP"' EXIT
+
+# Memory & personalization (PERS-*). Memory entries: two throwaway "[theseus-test]" entries are
+# added, listed, edited and deleted again; the Account's own entries are only read (and scrubbed
+# below). Never call DELETE /api/v1/memories/delete/user here: it would wipe the real Memory.
+api POST memory.add.json /api/v1/memories/add \
+  '{"content":"[theseus-test] Prefers metric units","type":"user","path":"preferences/units"}'
+MEM_ID="$(jq -r .id "$TMP/memory.add.json")"
+trap 'curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/memories/$MEM_ID" || true; rm -rf "$TMP"' EXIT
+api POST memory.add-context.json /api/v1/memories/add \
+  '{"content":"[theseus-test] Is building a native client for Open WebUI","type":"context"}'
+MEM2_ID="$(jq -r .id "$TMP/memory.add-context.json")"
+trap 'for id in "$MEM_ID" "$MEM2_ID"; do curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/memories/$id" || true; done; rm -rf "$TMP"' EXIT
+fetch memories.json /api/v1/memories/ "$TOKEN"
+api POST memory.update.json "/api/v1/memories/$MEM_ID/update" \
+  '{"content":"[theseus-test] Prefers metric units and 24-hour time","path":"preferences/units"}'
+api DELETE memory.delete.json "/api/v1/memories/$MEM_ID"
+api DELETE memory.delete-context.json "/api/v1/memories/$MEM2_ID"
+trap 'rm -rf "$TMP"' EXIT
+# Profile (PERS-01): re-post the Account's current profile unchanged (name, avatar, bio, gender,
+# date of birth), so the write is a no-op and only the response shape is recorded.
+api POST profile.update.json /api/v1/auths/update/profile "$(jq '{name, profile_image_url, bio, gender, date_of_birth}' "$TMP/auths.json")"
+# Projects (PROJ-*; server term: folders): a throwaway "[theseus-test]" Project with a Chat and one
+# knowledge file, deleted again with its contents. The Account's real folders are only read (list).
+api POST project.create.json /api/v1/folders/ \
+  '{"name":"[theseus-test] Fixture project","meta":{"theseus":{"description":"Plan healthy meals"}}}'
+PROJECT_ID="$(jq -r .id "$TMP/project.create.json")"
+api POST project.chat.new.json /api/v1/chats/new \
+  '{"chat":{"title":"[theseus-test] project chat","models":[],"history":{"messages":{},"currentId":null},"messages":[]}}'
+PROJECT_CHAT_ID="$(jq -r .id "$TMP/project.chat.new.json")"
+cleanup_project() {
+  curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/folders/$PROJECT_ID?delete_contents=true" || true
+  curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/chats/$PROJECT_CHAT_ID" || true
+  [[ -n "${PROJECT_FILE_ID:-}" ]] && curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/files/$PROJECT_FILE_ID" || true
+  rm -rf "$TMP"
+}
+trap cleanup_project EXIT
+api POST project.update.json "/api/v1/folders/$PROJECT_ID/update" \
+  '{"meta":{"theseus":{"description":"Plan healthy meals","starred":true}},"data":{"system_prompt":"Answer briefly."}}'
+api POST project.chat-move.json "/api/v1/chats/$PROJECT_CHAT_ID/folder" "{\"folder_id\":\"$PROJECT_ID\"}"
+fetch project.chats.json "/api/v1/chats/folder/$PROJECT_ID/list?page=1" "$TOKEN"
+printf '# Meal ideas\n\n[theseus-test] Oats, lentils, greens.\n' > "$TMP/theseus-test-notes.md"
+curl -sS --fail-with-body -o "$TMP/file.upload.json" -H "Authorization: Bearer $TOKEN" \
+  -F "file=@$TMP/theseus-test-notes.md;type=text/markdown" "$BASE/api/v1/files/?process=true&process_in_background=true"
+PROJECT_FILE_ID="$(jq -r .id "$TMP/file.upload.json")"
+for _ in $(seq 1 30); do
+  fetch file.process-status.json "/api/v1/files/$PROJECT_FILE_ID/process/status" "$TOKEN"
+  [[ "$(jq -r .status "$TMP/file.process-status.json")" == "pending" ]] || break
+  sleep 1
+done
+fetch file.json "/api/v1/files/$PROJECT_FILE_ID" "$TOKEN"
+api POST project.update-files.json "/api/v1/folders/$PROJECT_ID/update" "$(jq -c '{data:{files:[{
+  type:"file", id:.id, url:.id, name:.meta.name, size:.meta.size, content_type:.meta.content_type,
+  collection_name:.meta.collection_name, status:"uploaded"}]}}' "$TMP/file.json")"
+fetch project.json "/api/v1/folders/$PROJECT_ID" "$TOKEN"
+fetch projects.json /api/v1/folders/ "$TOKEN"
+api DELETE project.delete.json "/api/v1/folders/$PROJECT_ID?delete_contents=true"
+api DELETE file.delete.json "/api/v1/files/$PROJECT_FILE_ID"
+trap 'rm -rf "$TMP"' EXIT
+
+# Revoke the session we just created (own data only).
+curl -sS -o /dev/null -X POST -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/auths/signout" || true
+
+USER_ID="$(jq -r .id "$TMP/signin.json")"
+USER_NAME="$(jq -r .name "$TMP/signin.json")"
+HOST="$(echo "$BASE" | sed -E 's#^https?://##; s#/.*$##')"
+
+# Generic scrub applied to every string in every file.
+SCRUB_STRINGS='
+  def scrub:
+    gsub($token; "eyJhbGciOiJIUzI1NiJ9.c2NydWJiZWQ.c2NydWJiZWQ")
+    | gsub($uid; "00000000-0000-4000-8000-000000000001")
+    | gsub($host; "owui.example.com")
+    | gsub("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"; "user@example.com");
+  walk(if type == "string" then scrub else . end)
+  | walk(if type == "object" and has("name") and .name == $name then .name = "Test User" else . end)
+'
+
+scrub() { # scrub <file> [extra jq filter]
+  local file="$1" extra="${2:-.}"
+  jq --arg token "$TOKEN" --arg uid "$USER_ID" --arg name "$USER_NAME" --arg host "$HOST" \
+     "$SCRUB_STRINGS | $extra" "$TMP/$file" > "$OUT/$file"
+}
+
+scrub version.json '.deployment_id = ""'
+scrub config.public.json
+# The default model is the deployment's own choice (often a custom model id): keep only the shape.
+scrub config.json '(if .default_models then .default_models = "model" else . end)'
+scrub models.unauthenticated.json
+scrub signin.json
+scrub auths.json
+scrub audio.voices.json
+# Models: drop per-record ids that identify the deployment.
+scrub models.json '
+  .data |= map(
+    (if .info then .info.version_id = "00000000-0000-4000-8000-0000000000aa" else . end)
+    | (if .info.meta.terminalId then .info.meta.terminalId = "sandbox" else . end))'
+# Chats: replace ids, titles and snippets; keep timestamps and flags.
+scrub chats.page-1.json '
+  to_entries | map(.key as $i | .value
+    | .id = ("00000000-0000-4000-8000-" + ("000000000000" + ($i + 100 | tostring) | .[-12:]))
+    | .title = ("Chat \($i + 1)")
+    | (if has("snippet") then .snippet = null else . end))'
+
+# Search hits: same id/title scrub; snippets quote Message text, so replace them too.
+scrub chats.search.json '
+  to_entries | map(.key as $i | .value
+    | .id = ("00000000-0000-4000-8000-" + ("000000000000" + ($i + 300 | tostring) | .[-12:]))
+    | .title = ("Chat \($i + 1)")
+    | (if .snippet != null then .snippet = ("...matching text \($i + 1)...") else . end))'
+# The throwaway Chat: fixed id; its "[theseus-test]" titles are ours and stay.
+TEST_CHAT_SCRUB='walk(if type == "string" then gsub($cid; "00000000-0000-4000-8000-000000000200") else . end)'
+for file in chat.pin.json chat.rename.json chats.pinned.json chat.delete.json; do
+  jq --arg cid "$TEST_CHAT_ID" "$TEST_CHAT_SCRUB" "$TMP/$file" > "$TMP/$file.tmp" && mv "$TMP/$file.tmp" "$TMP/$file"
+  scrub "$file"
+done
+# Settings fixtures. User settings: keep the shape, replace free text (Instructions) and model ids.
+scrub user-settings.json '
+  (if .ui.system then .ui.system = "Instructions text" else . end)
+  | (if .ui.models then .ui.models = ["model"] else . end)'
+scrub tools.json
+# Usage: keep the last two weeks of the daily heatmaps (the full 730-day series is ~150 KB), and replace every
+# count with a made-up one: the real totals, streaks and heatmaps are the Account's personal activity.
+scrub users.usage.json '
+  .heatmap |= .[-14:] | .cumulative_heatmap |= .[-14:] | .weekly_heatmap |= .[-8:]
+  | .totals |= (. + {lifetime_tokens: 120000, input_tokens: 100000, output_tokens: 20000,
+      peak_daily_tokens: 40000, longest_chat_seconds: 900, current_streak: 3, longest_streak: 9,
+      total_chats: 42, active_days: 30, messages: 400, user_messages: 200, assistant_messages: 200})
+  | ((.heatmap, .weekly_heatmap, .cumulative_heatmap) |= (to_entries | map(.key as $i | .value
+      | .messages = ($i % 4 * 2) | .chats = ($i % 4) | .tokens = 0
+      | .models |= with_entries(.value = ($i % 4)))))
+  | (if .insights then .insights |= (. + {average_tokens_per_chat: 1000, average_messages_per_active_day: 10,
+      user_message_share: 50, assistant_message_share: 50}) else . end)
+  | .top_models |= (to_entries | map(.key as $i | .value | .messages = (200 - 100 * $i)
+      | .input_tokens = (50000 - 20000 * $i) | .output_tokens = (10000 - 4000 * $i)
+      | .total_tokens = (.input_tokens + .output_tokens)))
+  | .top_tools |= (to_entries | map(.key as $i | .value | .count = (10 - $i)))
+  | (if .period.end_date and .period.days then .period.start_date = (.period.end_date - .period.days * 86400) else . end)'
+scrub admin-details.json '(if .name then .name = "Server Admin" else . end)
+  | (if .email then .email = "admin@example.com" else . end)'
+SHARE_SCRUB='walk(if type == "string" then gsub($cid; "00000000-0000-4000-8000-000000000210")
+  | gsub($sid; "00000000-0000-4000-8000-000000000211") else . end)'
+for file in chat.share.json chats.shared.json chat.shared-snapshot.json chat.unshare.json; do
+  jq --arg cid "$SHARE_CHAT_ID" --arg sid "$SHARE_ID" "$SHARE_SCRUB" "$TMP/$file" > "$TMP/$file.tmp" \
+    && mv "$TMP/$file.tmp" "$TMP/$file"
+  scrub "$file"
+done
+
+# Memory entries: fixed ids for the throwaway entries; any real entry gets generic content.
+MEMORY_SCRUB='walk(if type == "string" then gsub($m1; "00000000-0000-4000-8000-000000000301")
+  | gsub($m2; "00000000-0000-4000-8000-000000000302") else . end)'
+for file in memory.add.json memory.add-context.json memories.json memory.update.json memory.delete.json memory.delete-context.json; do
+  jq --arg m1 "$MEM_ID" --arg m2 "$MEM2_ID" "$MEMORY_SCRUB" "$TMP/$file" > "$TMP/$file.tmp" && mv "$TMP/$file.tmp" "$TMP/$file"
+done
+scrub memories.json 'to_entries | map(.key as $i | .value
+  | if (.content | startswith("[theseus-test]")) then . else
+      .id = ("00000000-0000-4000-8000-" + ("000000000000" + ($i + 310 | tostring) | .[-12:]))
+      | .content = ("Remembered fact \($i + 1)") | .path = null | .meta = null end)'
+for file in memory.add.json memory.add-context.json memory.update.json memory.delete.json memory.delete-context.json; do
+  scrub "$file"
+done
+scrub profile.update.json
+# Projects: fixed ids for the throwaway Project, its Chat and file; the Account's other folders
+# (if any) get generic names.
+PROJECT_SCRUB='walk(if type == "string" then gsub($pid; "00000000-0000-4000-8000-000000000500")
+  | gsub($cid; "00000000-0000-4000-8000-000000000510") | gsub($fid; "00000000-0000-4000-8000-000000000520") else . end)'
+for file in project.create.json project.update.json project.chat-move.json project.chats.json file.upload.json \
+    file.process-status.json file.json project.update-files.json project.json projects.json project.delete.json; do
+  jq --arg pid "$PROJECT_ID" --arg cid "$PROJECT_CHAT_ID" --arg fid "$PROJECT_FILE_ID" "$PROJECT_SCRUB" "$TMP/$file" \
+    > "$TMP/$file.tmp" && mv "$TMP/$file.tmp" "$TMP/$file"
+  scrub "$file"
+done
+jq 'to_entries | map(.key as $i | .value
+  | if (.name | startswith("[theseus-test]")) then . else
+      .id = ("00000000-0000-4000-8000-" + ("000000000000" + ($i + 600 | tostring) | .[-12:]))
+      | .name = ("Project \($i + 1)") | .meta = null end)' "$OUT/projects.json" > "$TMP/projects.tmp" \
+  && mv "$TMP/projects.tmp" "$OUT/projects.json"
+
+# Starred chats other than the throwaway one (if the Account has any) get the generic title scrub.
+jq '. as $all | to_entries | map(.key as $i | .value
+  | if (.title | startswith("[theseus-test]")) then . else
+      .id = ("00000000-0000-4000-8000-" + ("000000000000" + ($i + 400 | tostring) | .[-12:]))
+      | .title = ("Chat \($i + 1)") end)' "$OUT/chats.pinned.json" > "$TMP/pinned.tmp" \
+  && mv "$TMP/pinned.tmp" "$OUT/chats.pinned.json"
+
+# Safety net: refuse to leave anything identifying behind.
+if grep -rqiF -e "$THESEUS_OWUI_EMAIL" -e "$TOKEN" -e "$USER_ID" -e "$HOST" "$OUT"; then
+  echo "record-fixtures: scrubbing failed; sensitive data found in $OUT" >&2
+  exit 1
+fi
+# Server-generated ids (messages, files, skill versions, …) become placeholders across all fixtures and tests.
+"$ROOT/scripts/fixtures/scrub_ids.py"
+echo "record-fixtures: wrote $(ls "$OUT"/*.json | wc -l | tr -d ' ') files to ${OUT#"$ROOT/"}"

@@ -1,0 +1,115 @@
+{
+  "id": "00000000-0000-4000-8000-0000000c0001",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "Labyrinths in Mythology",
+  "chat": {
+    "id": "00000000-0000-4000-8000-0000000c0001",
+    "title": "Labyrinths in Mythology",
+    "models": [
+      "claude-haiku-5-5"
+    ],
+    "history": {
+      "currentId": "00000000-0000-4000-8000-0000000e0060",
+      "messages": {
+        "00000000-0000-4000-8000-0000000e0061": {
+          "id": "00000000-0000-4000-8000-0000000e0061",
+          "parentId": null,
+          "childrenIds": [
+            "00000000-0000-4000-8000-0000000e0060"
+          ],
+          "role": "user",
+          "content": "[theseus-test] Write a 400-word essay about labyrinths in mythology.",
+          "timestamp": 1792780318,
+          "models": [
+            "claude-haiku-5-5"
+          ],
+          "user_id": "00000000-0000-4000-8000-000000000001",
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "name": "Test User"
+          }
+        },
+        "00000000-0000-4000-8000-0000000e0060": {
+          "id": "00000000-0000-4000-8000-0000000e0060",
+          "parentId": "00000000-0000-4000-8000-0000000e0061",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "**The Thread and the Center: Labyrinths in Mythology**\n\nLabyrinths appear in myth as places built to confine, to test, and to transform. Their most famous story comes from Greece. King Minos of Crete commissioned the architect Daedalus to build a structure so intricate that no one could find their way out. Within its winding corridors lived the Minotaur, a monster born of Minos's wife Pasiphae and a bull. Each year, Athens was forced to send seven young men and seven young women as tribute, to be devoured in the maze. The labyrinth was a prison built to hide shame, and its complexity was the point: it made escape impossible without help.\n\nHelp came from Ariadne, Minos's daughter, who gave the hero Theseus a ball of thread. Unwinding it as he entered, Theseus could follow it back out after killing the Minotaur. Ariadne's simple gift proved stronger than the labyrinth's walls. The thread became the labyrinth's most lasting symbol. It suggests that a maze is not defeated by force or by cleverness alone, but by a guiding line that connects the traveler to the way home.\n\nDaedalus himself was trapped too. Having helped Ariadne, he was imprisoned by Minos and escaped by fashioning wings of feathers and wax. The architect who made the maze became its captive, a reminder that the designer of a labyrinth is never fully outside it.\n\nLabyrinths appear beyond Crete too. Herodotus described the Egyptian pharaoh Amenemhat III's mortuary complex at Hawara as a labyrinth surpassing the pyramids, though little of it survives today. Hopi tradition and rock art use a unicursal pattern, a single path that leads inward and out again, to represent life's passage and the way toward the center.\n\nScholars distinguish two kinds of labyrinth. Unicursal designs have one path and no dead ends. Multicursal mazes, like the Cretan one, branch and trap. Medieval cathedrals such as Chartres later inlaid unicursal labyrinths in their floors, where pilgrims walked the winding path toward the center as a substitute for travel to Jerusalem.\n\nAcross these traditions, the labyrinth carries a consistent meaning: a journey into the unknown that must be made with patience, guidance, and a willingness to turn back. Whether a monster or a god waits at the center, the myth suggests that the deepest truths are reached only by those who trust the thread.",
+          "done": true,
+          "model": "claude-haiku-5-5",
+          "timestamp": 1792780318,
+          "modelIdx": 0,
+          "meta": {
+            "task_id": "00000000-0000-4000-8000-0000000e0062"
+          },
+          "output": [
+            {
+              "type": "message",
+              "id": "msg_000000000000000000000034",
+              "status": "completed",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "output_text",
+                  "text": "**The Thread and the Center: Labyrinths in Mythology**\n\nLabyrinths appear in myth as places built to confine, to test, and to transform. Their most famous story comes from Greece. King Minos of Crete commissioned the architect Daedalus to build a structure so intricate that no one could find their way out. Within its winding corridors lived the Minotaur, a monster born of Minos's wife Pasiphae and a bull. Each year, Athens was forced to send seven young men and seven young women as tribute, to be devoured in the maze. The labyrinth was a prison built to hide shame, and its complexity was the point: it made escape impossible without help.\n\nHelp came from Ariadne, Minos's daughter, who gave the hero Theseus a ball of thread. Unwinding it as he entered, Theseus could follow it back out after killing the Minotaur. Ariadne's simple gift proved stronger than the labyrinth's walls. The thread became the labyrinth's most lasting symbol. It suggests that a maze is not defeated by force or by cleverness alone, but by a guiding line that connects the traveler to the way home.\n\nDaedalus himself was trapped too. Having helped Ariadne, he was imprisoned by Minos and escaped by fashioning wings of feathers and wax. The architect who made the maze became its captive, a reminder that the designer of a labyrinth is never fully outside it.\n\nLabyrinths appear beyond Crete too. Herodotus described the Egyptian pharaoh Amenemhat III's mortuary complex at Hawara as a labyrinth surpassing the pyramids, though little of it survives today. Hopi tradition and rock art use a unicursal pattern, a single path that leads inward and out again, to represent life's passage and the way toward the center.\n\nScholars distinguish two kinds of labyrinth. Unicursal designs have one path and no dead ends. Multicursal mazes, like the Cretan one, branch and trap. Medieval cathedrals such as Chartres later inlaid unicursal labyrinths in their floors, where pilgrims walked the winding path toward the center as a substitute for travel to Jerusalem.\n\nAcross these traditions, the labyrinth carries a consistent meaning: a journey into the unknown that must be made with patience, guidance, and a willingness to turn back. Whether a monster or a god waits at the center, the myth suggests that the deepest truths are reached only by those who trust the thread."
+                }
+              ]
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 12778,
+            "completion_tokens": 7221,
+            "total_tokens": 39998,
+            "prompt_tokens_details": {
+              "cached_tokens": 20298,
+              "cached_creation_tokens": 5254,
+              "cache_write_tokens": 5254
+            },
+            "input_tokens": 25556,
+            "output_tokens": 14442
+          },
+          "followUps": [
+            "Can you check the essay and confirm it's actually around 400 words?",
+            "Add a paragraph on non-Greek labyrinths, like the Hopi or Finnish designs.",
+            "Tighten the closing paragraph so it ends on a stronger image.",
+            "Give me a few sources I could cite to back up the Chartres and Minotaur details.",
+            "Rewrite it in a more informal, conversational tone."
+          ]
+        }
+      }
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "[theseus-test] Write a 400-word essay about labyrinths in mythology.",
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "user": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Test User"
+        }
+      }
+    ],
+    "files": [],
+    "tags": [],
+    "timestamp": 1792780318838,
+    "share_mode": "continue"
+  },
+  "updated_at": 1792780347,
+  "created_at": 1792780318,
+  "share_id": null,
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "00000000-0000-4000-8000-0000000e0060",
+  "context_usage": {
+    "tokens": 19999,
+    "estimated_tokens": 19999,
+    "threshold": 80000,
+    "percent": 25,
+    "source": "estimated"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "00000000-0000-4000-8000-000000000210",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "title": "[theseus-test] shared",
+  "chat": {
+    "title": "[theseus-test] shared",
+    "models": [
+      "model"
+    ],
+    "history": {
+      "currentId": "m2",
+      "messages": {
+        "m1": {
+          "id": "m1",
+          "parentId": null,
+          "childrenIds": [
+            "m2"
+          ],
+          "role": "user",
+          "content": "Plan a short walk",
+          "timestamp": 1792784079
+        },
+        "m2": {
+          "id": "m2",
+          "parentId": "m1",
+          "childrenIds": [],
+          "role": "assistant",
+          "content": "**Route:** the park loop, about 30 minutes.",
+          "model": "model",
+          "done": true,
+          "timestamp": 1792784079
+        }
+      }
+    },
+    "messages": []
+  },
+  "updated_at": 1792784079,
+  "created_at": 1792784079,
+  "share_id": "00000000-0000-4000-8000-000000000211",
+  "archived": false,
+  "pinned": false,
+  "meta": {},
+  "variables": {},
+  "folder_id": null,
+  "tasks": null,
+  "summary": null,
+  "current_message_id": "m2",
+  "context_usage": null
+}

@@ -1,0 +1,8 @@
+{
+  "status": true,
+  "specs": [
+    {"name": "read_wiki_structure", "description": "Get a list of documentation topics for a GitHub repository", "parameters": {"type": "object", "properties": {"repoName": {"type": "string"}}, "required": ["repoName"]}},
+    {"name": "read_wiki_contents", "description": "View documentation about a GitHub repository", "parameters": {"type": "object", "properties": {"repoName": {"type": "string"}}, "required": ["repoName"]}},
+    {"name": "ask_question", "description": "Ask any question about a GitHub repository", "parameters": {"type": "object", "properties": {"repoName": {"type": "string"}, "question": {"type": "string"}}, "required": ["repoName", "question"]}}
+  ]
+}

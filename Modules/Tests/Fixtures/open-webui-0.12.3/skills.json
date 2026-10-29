@@ -1,0 +1,254 @@
+[
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0002",
+    "id": "deep-research",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "deep-research",
+    "description": "What the deep-research skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792768702,
+    "created_at": 1792760689,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0001",
+    "id": "xlsx",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "xlsx",
+    "description": "What the xlsx skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0003",
+    "id": "webapp-testing",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "webapp-testing",
+    "description": "What the webapp-testing skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0004",
+    "id": "web-artifacts-builder",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "web-artifacts-builder",
+    "description": "What the web-artifacts-builder skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0005",
+    "id": "skill-creator",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "skill-creator",
+    "description": "What the skill-creator skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0006",
+    "id": "pptx",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "pptx",
+    "description": "What the pptx skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0007",
+    "id": "pdf",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "pdf",
+    "description": "What the pdf skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0008",
+    "id": "frontend-design",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "frontend-design",
+    "description": "What the frontend-design skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0009",
+    "id": "docx",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "docx",
+    "description": "What the docx skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0010",
+    "id": "doc-coauthoring",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "doc-coauthoring",
+    "description": "What the doc-coauthoring skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0011",
+    "id": "discernment-nudge",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "discernment-nudge",
+    "description": "What the discernment-nudge skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  },
+  {
+    "version_id": "00000000-0000-4000-8000-0000000e0012",
+    "id": "canvas-design",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "canvas-design",
+    "description": "What the canvas-design skill does.",
+    "meta": {
+      "i18n": null,
+      "tags": []
+    },
+    "is_active": true,
+    "access_grants": [],
+    "updated_at": 1792699002,
+    "created_at": 1792699002,
+    "user": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "Test User",
+      "role": "admin",
+      "email": "user@example.com"
+    }
+  }
+]
