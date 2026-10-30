@@ -281,7 +281,7 @@ section { padding: clamp(4.5rem, 10vw, 8rem) 0; }
 
 /* iPad. */
 .ipad-room { text-align: center; padding-top: 0; }
-.ipad-room .ipad { max-width: 620px; margin: 0 auto; }
+.ipad-room .ipad { max-width: 1000px; margin: 0 auto; }
 
 /* After hours: Incognito and privacy, in the dark. */
 .night { background: var(--night); color: var(--night-text); }
